@@ -78,9 +78,13 @@
                             <Style TargetType="Image">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsDesktopTile}" Value="True">
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsDesktopTile}" Value="True"/>
+                                            <Condition Binding="{Binding HasIconImage}" Value="False"/>
+                                        </MultiDataTrigger.Conditions>
                                         <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
+                                    </MultiDataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Image.Style>
@@ -88,16 +92,6 @@
 
                     <!-- Icon / Vector / Glyph -->
                     <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,8">
-                        <Grid.Style>
-                            <Style TargetType="Grid">
-                                <Setter Property="Visibility" Value="Visible"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsDesktopTile}" Value="True">
-                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Grid.Style>
                         <!-- Image Logo (Authentic Metro PNG with full scaling and offset) -->
                         <Image Source="{Binding IconImagePath}" 
                                Width="{Binding EffectiveIconWidth}" 

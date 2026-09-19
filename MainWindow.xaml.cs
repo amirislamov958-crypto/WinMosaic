@@ -858,7 +858,7 @@ namespace Win8StartScreen
                     try
                     {
                         using var testDoc = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(configPath));
-                        if (!testDoc.RootElement.TryGetProperty("Version", out var verProp) || verProp.GetString() != "1.2")
+                        if (!testDoc.RootElement.TryGetProperty("Tiles", out var testTiles) || testTiles.GetArrayLength() == 0)
                         {
                             needsDefault = true;
                         }
@@ -1084,7 +1084,7 @@ namespace Win8StartScreen
                             tileModel.StoreTopApp3Sub = LocalizationManager.Get("LiveStoreTop3Sub", "Бесплатно ★★★★★ 27 890");
                             tileModel.IsLiveTileEnabled = true;
                         }
-                        else if (title.Equals("Games", StringComparison.OrdinalIgnoreCase) || title.Equals("Игры", StringComparison.OrdinalIgnoreCase) || liveTemplate == "Games" || (!string.IsNullOrEmpty(tileModel.IconImagePath) && tileModel.IconImagePath.Contains("win8icons_30")))
+                        else if (title.Equals("Games", StringComparison.OrdinalIgnoreCase) || title.Equals("Игры", StringComparison.OrdinalIgnoreCase) || liveTemplate == "Games")
                         {
                             tileModel.Title = "Games";
                             tileModel.LiveTemplate = "Games";
@@ -1105,20 +1105,23 @@ namespace Win8StartScreen
 
                         if (tileModel.IsDesktopTile)
                         {
-                            string realWp = ResolveCurrentDesktopWallpaper();
-                            if (!string.IsNullOrEmpty(realWp) && System.IO.File.Exists(realWp))
+                            if (string.IsNullOrEmpty(tileModel.IconImagePath) || !System.IO.File.Exists(tileModel.IconImagePath))
                             {
-                                tileModel.IconImagePath = realWp;
-                                var bmp = LoadDesktopWallpaperBitmap();
-                                if (bmp != null)
+                                string realWp = ResolveCurrentDesktopWallpaper();
+                                if (!string.IsNullOrEmpty(realWp) && System.IO.File.Exists(realWp))
                                 {
-                                    tileModel.DesktopWallpaperSource = bmp;
+                                    tileModel.IconImagePath = realWp;
+                                    var bmp = LoadDesktopWallpaperBitmap();
+                                    if (bmp != null)
+                                    {
+                                        tileModel.DesktopWallpaperSource = bmp;
+                                    }
                                 }
-                            }
-                            if (tileModel.DesktopWallpaperSource == null && (string.IsNullOrEmpty(tileModel.IconImagePath) || !System.IO.File.Exists(tileModel.IconImagePath)))
-                            {
-                                string defaultDesk = GetAssetPath("win8_desktop.png");
-                                if (System.IO.File.Exists(defaultDesk)) tileModel.IconImagePath = defaultDesk;
+                                else
+                                {
+                                    string defaultDesk = GetAssetPath("win8_desktop.png");
+                                    if (System.IO.File.Exists(defaultDesk)) tileModel.IconImagePath = defaultDesk;
+                                }
                             }
                         }
 
