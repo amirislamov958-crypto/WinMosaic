@@ -689,6 +689,11 @@ namespace Win8StartScreen
         {
             try
             {
+                if (string.IsNullOrEmpty(configuredIcon) && string.IsNullOrEmpty(iconVector))
+                {
+                    return "";
+                }
+
                 string t = title.Trim();
 
                 // Authentic Windows 8.1 system tiles with vectors render crisp SVG vector paths
