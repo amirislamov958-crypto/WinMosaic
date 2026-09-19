@@ -653,12 +653,172 @@ namespace Win8StartScreen
             catch { }
         }
 
+        public static void EnsureDefaultLayoutConfig(string configPath)
+        {
+            try
+            {
+                string dir = System.IO.Path.GetDirectoryName(configPath) ?? "";
+                if (!System.IO.Directory.Exists(dir)) System.IO.Directory.CreateDirectory(dir);
+
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                string[] candidates = new[]
+                {
+                    System.IO.Path.Combine(baseDir, "default_layout.json"),
+                    System.IO.Path.Combine(baseDir, "Assets", "default_layout.json"),
+                    System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "WinMosaic", "default_layout.json"),
+                    System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "WinMosaic", "Assets", "default_layout.json")
+                };
+
+                foreach (var c in candidates)
+                {
+                    if (System.IO.File.Exists(c) && new System.IO.FileInfo(c).Length > 100)
+                    {
+                        System.IO.File.Copy(c, configPath, true);
+                        SafeLog($"EnsureDefaultLayoutConfig: Copied from {c} to {configPath}");
+                        return;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SafeLog($"EnsureDefaultLayoutConfig error: {ex.Message}");
+            }
+        }
+
+        public static string ResolveTileIconPath(string title, string configuredIcon, string iconVector)
+        {
+            try
+            {
+                string t = title.Trim();
+
+                // Authentic Windows 8.1 system tiles with vectors render crisp SVG vector paths
+                bool prefersVector = !string.IsNullOrEmpty(iconVector) &&
+                                     !t.Equals("Games", StringComparison.OrdinalIgnoreCase) &&
+                                     !t.Equals("Игры", StringComparison.OrdinalIgnoreCase) &&
+                                     !t.Equals("Desktop", StringComparison.OrdinalIgnoreCase) &&
+                                     !t.Equals("Рабочий стол", StringComparison.OrdinalIgnoreCase);
+
+                if (prefersVector)
+                {
+                    return "";
+                }
+
+                if (!string.IsNullOrEmpty(configuredIcon) && System.IO.File.Exists(configuredIcon))
+                {
+                    return System.IO.Path.GetFullPath(configuredIcon);
+                }
+
+                if (!string.IsNullOrEmpty(configuredIcon))
+                {
+                    string cleaned = configuredIcon.Replace('/', '\\');
+                    if (cleaned.StartsWith("Assets\\", StringComparison.OrdinalIgnoreCase))
+                    {
+                        cleaned = cleaned.Substring(7);
+                    }
+                    string assetP = GetAssetPath(cleaned);
+                    if (System.IO.File.Exists(assetP)) return System.IO.Path.GetFullPath(assetP);
+
+                    string fn = System.IO.Path.GetFileName(configuredIcon);
+                    if (!string.IsNullOrEmpty(fn))
+                    {
+                        string fnAsset = GetAssetPath(fn);
+                        if (System.IO.File.Exists(fnAsset)) return System.IO.Path.GetFullPath(fnAsset);
+                        string fnLive = GetAssetPath("LiveTiles\\" + fn);
+                        if (System.IO.File.Exists(fnLive)) return System.IO.Path.GetFullPath(fnLive);
+                    }
+                }
+
+                if (t.Equals("Games", StringComparison.OrdinalIgnoreCase) || t.Equals("Игры", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("LiveTiles\\game_angry_birds.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
+                if (t.Equals("Store", StringComparison.OrdinalIgnoreCase) || t.Equals("Магазин", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("store_bag_transparent.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
+                if (t.Equals("Desktop", StringComparison.OrdinalIgnoreCase) || t.Equals("Рабочий стол", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("win8_desktop.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
+                if (t.Equals("Weather", StringComparison.OrdinalIgnoreCase) || t.Equals("Погода", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("weather_sun.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
+                if (t.Equals("Internet Explorer", StringComparison.OrdinalIgnoreCase) || t.Equals("IE", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("MetroIcons\\Web Browsers\\Internet Explorer 10.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
+                if (t.Equals("Skype", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("skype_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
+                if (t.Equals("Discord", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("discord_icon.jpg"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
+                if (t.Equals("Health & Fitness", StringComparison.OrdinalIgnoreCase) || t.Equals("Здоровье и фитнес", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("health_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
+
+                string metro = MetroIconResolver.ResolveIconPath(t);
+                if (!string.IsNullOrEmpty(metro) && System.IO.File.Exists(metro)) return System.IO.Path.GetFullPath(metro);
+
+                if (!string.IsNullOrEmpty(configuredIcon))
+                {
+                    string fnWithoutExt = System.IO.Path.GetFileNameWithoutExtension(configuredIcon);
+                    string metroFn = MetroIconResolver.ResolveIconPath(fnWithoutExt);
+                    if (!string.IsNullOrEmpty(metroFn) && System.IO.File.Exists(metroFn)) return System.IO.Path.GetFullPath(metroFn);
+                }
+            }
+            catch { }
+
+            return !string.IsNullOrEmpty(iconVector) ? "" : configuredIcon;
+        }
+
+        public static string ResolveLiveImagePath(string liveImg)
+        {
+            if (string.IsNullOrEmpty(liveImg)) return "";
+            if (System.IO.File.Exists(liveImg)) return liveImg;
+            string fn = System.IO.Path.GetFileName(liveImg);
+            string candidate = GetAssetPath("LiveTiles\\" + fn);
+            if (System.IO.File.Exists(candidate)) return candidate;
+            candidate = GetAssetPath(fn);
+            if (System.IO.File.Exists(candidate)) return candidate;
+            return liveImg;
+        }
+
+        public void ResetDefaultTiles()
+        {
+            try
+            {
+                string configPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Win8StartScreen", "layout_config.json");
+                EnsureDefaultLayoutConfig(configPath);
+                ApplyLayoutConfig();
+            }
+            catch (Exception ex)
+            {
+                SafeLog($"ResetDefaultTiles error: {ex.Message}");
+            }
+        }
+
+        private void ResetDefaultTiles_Click(object sender, RoutedEventArgs e)
+        {
+            ResetDefaultTiles();
+            CloseAllFlyouts();
+        }
+
         private void ApplyLayoutConfig()
         {
             try
             {
                 MetroIconResolver.Initialize();
                 string configPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Win8StartScreen", "layout_config.json");
+                if (!System.IO.File.Exists(configPath) || new System.IO.FileInfo(configPath).Length < 50)
+                {
+                    EnsureDefaultLayoutConfig(configPath);
+                }
+
                 if (!System.IO.File.Exists(configPath)) return;
 
                 string json = System.IO.File.ReadAllText(configPath);
@@ -680,6 +840,13 @@ namespace Win8StartScreen
 
                 if (doc.RootElement.TryGetProperty("Tiles", out var tilesElem) && tilesElem.ValueKind == System.Text.Json.JsonValueKind.Array)
                 {
+                    if (tilesElem.GetArrayLength() == 0)
+                    {
+                        EnsureDefaultLayoutConfig(configPath);
+                        ApplyLayoutConfig();
+                        return;
+                    }
+
                     UpdateAdaptiveGridDimensions();
                     StartTilesCanvas.Children.Clear();
                     StartTiles.Clear();
@@ -728,19 +895,21 @@ namespace Win8StartScreen
                         string st3Sub = item.TryGetProperty("StoreTopApp3Sub", out var st3sp) ? st3sp.GetString() ?? "" : "";
 
                         string iconVector = item.TryGetProperty("IconVectorPath", out var ivp) ? ivp.GetString() ?? "" : "";
+                        string iconGlyph = item.TryGetProperty("IconGlyph", out var igp) ? igp.GetString() ?? "" : "";
+                        if (string.IsNullOrEmpty(iconGlyph))
+                        {
+                            if (title.Equals("Photoshop", StringComparison.OrdinalIgnoreCase)) iconGlyph = "Ps";
+                            else if (title.Equals("Adobe Premiere Pro", StringComparison.OrdinalIgnoreCase)) iconGlyph = "Pr";
+                            else if (title.Equals("Adobe After Effects", StringComparison.OrdinalIgnoreCase)) iconGlyph = "Ae";
+                            else if (title.Equals("OneNote", StringComparison.OrdinalIgnoreCase)) iconGlyph = "N";
+                        }
                         bool isLiveTileEnabledConfig = item.TryGetProperty("IsLiveTileEnabled", out var iltep) ? iltep.GetBoolean() : true;
 
-                        if (string.IsNullOrEmpty(icon) || !System.IO.File.Exists(icon))
-                        {
-                            if (string.IsNullOrEmpty(iconVector))
-                            {
-                                icon = MetroIconResolver.ResolveIconPath(title);
-                            }
-                            else
-                            {
-                                icon = "";
-                            }
-                        }
+                        icon = ResolveTileIconPath(title, icon, iconVector);
+                        liveImg = ResolveLiveImagePath(liveImg);
+                        st1Icon = ResolveLiveImagePath(st1Icon);
+                        st2Icon = ResolveLiveImagePath(st2Icon);
+                        st3Icon = ResolveLiveImagePath(st3Icon);
 
                         var tileModel = new TileModel
                         {
@@ -758,6 +927,7 @@ namespace Win8StartScreen
                             IconStretch = iconStretch,
                             IconImagePath = icon,
                             IconVectorPath = iconVector,
+                            IconGlyph = iconGlyph,
                             IsLiveTileEnabled = isLiveTileEnabledConfig,
                             LiveText = liveText,
                             LiveTemplate = liveTemplate,
@@ -878,7 +1048,7 @@ namespace Win8StartScreen
                         if (tileModel.IsDesktopTile)
                         {
                             string realWp = ResolveCurrentDesktopWallpaper();
-                            if (!string.IsNullOrEmpty(realWp))
+                            if (!string.IsNullOrEmpty(realWp) && System.IO.File.Exists(realWp))
                             {
                                 tileModel.IconImagePath = realWp;
                                 var bmp = LoadDesktopWallpaperBitmap();
@@ -886,6 +1056,11 @@ namespace Win8StartScreen
                                 {
                                     tileModel.DesktopWallpaperSource = bmp;
                                 }
+                            }
+                            if (tileModel.DesktopWallpaperSource == null && (string.IsNullOrEmpty(tileModel.IconImagePath) || !System.IO.File.Exists(tileModel.IconImagePath)))
+                            {
+                                string defaultDesk = GetAssetPath("win8_desktop.png");
+                                if (System.IO.File.Exists(defaultDesk)) tileModel.IconImagePath = defaultDesk;
                             }
                         }
 
@@ -3288,6 +3463,7 @@ namespace Win8StartScreen
                 if (SettingsLanguageBtnText != null) SettingsLanguageBtnText.Text = LocalizationManager.Get("SettingsLanguage", "Язык интерфейса");
                 if (SettingsAutostartBtnText != null) SettingsAutostartBtnText.Text = LocalizationManager.Get("SettingsAutostart", "Автозагрузка");
                 if (SettingsFoundersBtnText != null) SettingsFoundersBtnText.Text = LocalizationManager.Get("SettingsFounders", "Основатели");
+                if (SettingsResetTilesBtnText != null) SettingsResetTilesBtnText.Text = LocalizationManager.Get("SettingsResetTiles", "Восстановить плитки");
                 if (SettingsControlPanelBtnText != null) SettingsControlPanelBtnText.Text = LocalizationManager.Get("SettingsControlPanel", "Панель управления");
                 if (SettingsTaskManagerBtnText != null) SettingsTaskManagerBtnText.Text = LocalizationManager.Get("SettingsTaskManager", "Диспетчер задач");
                 if (SettingsStudioBtnText != null) SettingsStudioBtnText.Text = LocalizationManager.Get("SettingsStudio", "Редактор экрана (Studio)");

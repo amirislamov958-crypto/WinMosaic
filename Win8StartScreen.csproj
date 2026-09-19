@@ -13,5 +13,6 @@
     <Resource Include="Assets\petya_mask.png" />
     <Resource Include="Assets\chaosmaster_cube.jpg" />
     <None Update="Assets\**" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="default_layout.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

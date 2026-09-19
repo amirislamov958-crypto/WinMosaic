@@ -374,7 +374,7 @@ namespace Win8StartScreen.Models
         }
 
         [JsonIgnore]
-        public bool HasIconImage => !string.IsNullOrEmpty(IconImagePath);
+        public bool HasIconImage => !string.IsNullOrEmpty(IconImagePath) && (System.IO.File.Exists(IconImagePath) || IconImagePath.StartsWith("pack://"));
 
         public string IconVectorPath
         {
@@ -821,7 +821,7 @@ namespace Win8StartScreen.Models
         public Brush TileBrush { get; set; } = new SolidColorBrush(Color.FromRgb(0x22, 0x22, 0x22));
         public bool IsSetting { get; set; } = false;
 
-        public bool HasIconImage => !string.IsNullOrEmpty(IconImagePath);
+        public bool HasIconImage => !string.IsNullOrEmpty(IconImagePath) && (System.IO.File.Exists(IconImagePath) || IconImagePath.StartsWith("pack://"));
         public bool HasVectorPath => !string.IsNullOrEmpty(IconVectorPath) && !HasIconImage;
         public bool HasGlyph => !HasIconImage && !HasVectorPath;
 
