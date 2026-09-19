@@ -858,7 +858,7 @@ namespace Win8StartScreen
                     try
                     {
                         using var testDoc = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(configPath));
-                        if (!testDoc.RootElement.TryGetProperty("Version", out var verProp) || verProp.GetString() != "1.1")
+                        if (!testDoc.RootElement.TryGetProperty("Version", out var verProp) || verProp.GetString() != "1.2")
                         {
                             needsDefault = true;
                         }
@@ -1105,28 +1105,20 @@ namespace Win8StartScreen
 
                         if (tileModel.IsDesktopTile)
                         {
-                            if (isLiveTileEnabledConfig)
+                            string realWp = ResolveCurrentDesktopWallpaper();
+                            if (!string.IsNullOrEmpty(realWp) && System.IO.File.Exists(realWp))
                             {
-                                string realWp = ResolveCurrentDesktopWallpaper();
-                                if (!string.IsNullOrEmpty(realWp) && System.IO.File.Exists(realWp))
+                                tileModel.IconImagePath = realWp;
+                                var bmp = LoadDesktopWallpaperBitmap();
+                                if (bmp != null)
                                 {
-                                    tileModel.IconImagePath = realWp;
-                                    var bmp = LoadDesktopWallpaperBitmap();
-                                    if (bmp != null)
-                                    {
-                                        tileModel.DesktopWallpaperSource = bmp;
-                                    }
-                                }
-                                if (tileModel.DesktopWallpaperSource == null && (string.IsNullOrEmpty(tileModel.IconImagePath) || !System.IO.File.Exists(tileModel.IconImagePath)))
-                                {
-                                    string defaultDesk = GetAssetPath("win8_desktop.png");
-                                    if (System.IO.File.Exists(defaultDesk)) tileModel.IconImagePath = defaultDesk;
+                                    tileModel.DesktopWallpaperSource = bmp;
                                 }
                             }
-                            else
+                            if (tileModel.DesktopWallpaperSource == null && (string.IsNullOrEmpty(tileModel.IconImagePath) || !System.IO.File.Exists(tileModel.IconImagePath)))
                             {
-                                tileModel.DesktopWallpaperSource = null;
-                                tileModel.IconImagePath = string.Empty;
+                                string defaultDesk = GetAssetPath("win8_desktop.png");
+                                if (System.IO.File.Exists(defaultDesk)) tileModel.IconImagePath = defaultDesk;
                             }
                         }
 
@@ -5304,7 +5296,7 @@ namespace Win8StartScreen
 
                 if (_configWatcher != null) _configWatcher.EnableRaisingEvents = false;
 
-                string version = "1.1";
+                string version = "1.2";
                 string bgPrimary = ThemeManager.CurrentTheme.BackgroundPrimary;
                 string bgSecondary = ThemeManager.CurrentTheme.BackgroundSecondary;
                 string accent = ThemeManager.CurrentTheme.AccentColor;
