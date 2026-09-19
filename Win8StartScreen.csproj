@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <AssemblyName>WinMosaic</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\petya_mask.png" />
+    <Resource Include="Assets\chaosmaster_cube.jpg" />
+    <None Update="Assets\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

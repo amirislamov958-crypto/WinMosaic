@@ -1,0 +1,69 @@
+<UserControl x:Class="Win8StartScreen.Views.StartScreenView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="clr-namespace:Win8StartScreen.Models"
+             mc:Ignorable="d"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Win8StartScreen;component/Styles/MetroStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Background="{StaticResource StartScreenBackgroundBrush}" Button.Click="Tile_Click">
+
+        <!-- Горизонтальная прокрутка плиточного поля, вертикальной прокрутки нет,
+             как в оригинальном Start Screen -->
+        <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Disabled"
+                      Padding="80,60,80,40"
+                      PanningMode="HorizontalOnly">
+
+            <!-- Список групп, каждая группа = заголовок + плиточное поле -->
+            <ItemsControl ItemsSource="{Binding Groups}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type models:TileGroup}">
+                        <StackPanel Margin="0,0,50,0">
+
+                            <TextBlock Text="{Binding Header}" Style="{StaticResource GroupHeaderStyle}"/>
+
+                            <!-- ВАЖНО: WrapPanel с Orientation="Vertical" и фиксированной Height.
+                                 Это воспроизводит родное поведение Windows 8.1: плитки заполняют
+                                 колонку СВЕРХУ ВНИЗ (высотой ровно в 4 Medium-плитки = 632px),
+                                 а после заполнения колонки автоматически переносятся в СЛЕДУЮЩУЮ
+                                 колонку правее — а не наслаиваются друг на друга и не обрезаются,
+                                 как это было при неверно заданных Grid.Row/фиксированной высоте
+                                 строки. -->
+                            <ItemsControl ItemsSource="{Binding Items}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Vertical" Height="632"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+
+                                <!-- Контейнер элемента не должен добавлять собственный отступ —
+                                     весь Margin уже задан в MetroTileStyle и в шаблоне кластера,
+                                     это единственный источник интервалов между плитками. -->
+                                <ItemsControl.ItemContainerStyle>
+                                    <Style TargetType="ContentPresenter">
+                                        <Setter Property="Margin" Value="0"/>
+                                    </Style>
+                                </ItemsControl.ItemContainerStyle>
+                            </ItemsControl>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

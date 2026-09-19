@@ -1,0 +1,570 @@
+<UserControl x:Class="Win8StartScreen.LiveTileControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="{Binding PixelWidth}" 
+             Height="{Binding PixelHeight}"
+             Margin="0"
+             Cursor="Hand"
+             ClipToBounds="True"
+             PreviewMouseLeftButtonDown="Tile_MouseDown"
+             PreviewMouseMove="Tile_MouseMove"
+             PreviewMouseLeftButtonUp="Tile_MouseUp"
+             MouseRightButtonUp="Tile_RightClick">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <Storyboard x:Key="LiveRollStoryboard">
+            <DoubleAnimation Storyboard.TargetName="FrontTranslate"
+                             Storyboard.TargetProperty="Y"
+                             From="0" To="-340" Duration="0:0:0.6">
+                <DoubleAnimation.EasingFunction>
+                    <CubicEase EasingMode="EaseInOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+
+            <DoubleAnimation Storyboard.TargetName="BackTranslate"
+                             Storyboard.TargetProperty="Y"
+                             From="340" To="0" Duration="0:0:0.6">
+                <DoubleAnimation.EasingFunction>
+                    <CubicEase EasingMode="EaseInOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+
+        <Storyboard x:Key="LiveRollBackStoryboard">
+            <DoubleAnimation Storyboard.TargetName="FrontTranslate"
+                             Storyboard.TargetProperty="Y"
+                             From="-340" To="0" Duration="0:0:0.6">
+                <DoubleAnimation.EasingFunction>
+                    <CubicEase EasingMode="EaseInOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+
+            <DoubleAnimation Storyboard.TargetName="BackTranslate"
+                             Storyboard.TargetProperty="Y"
+                             From="0" To="340" Duration="0:0:0.6">
+                <DoubleAnimation.EasingFunction>
+                    <CubicEase EasingMode="EaseInOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+    </UserControl.Resources>
+
+    <!-- 3D Perspective Tilt Container -->
+    <Grid x:Name="TransformRoot" RenderTransformOrigin="0.5,0.5">
+        <Grid.RenderTransform>
+            <TransformGroup>
+                <TranslateTransform x:Name="EntranceTranslate" X="0" Y="0"/>
+                <ScaleTransform x:Name="TileScale" ScaleX="1.0" ScaleY="1.0"/>
+                <SkewTransform x:Name="TileSkew" AngleX="0" AngleY="0"/>
+            </TransformGroup>
+        </Grid.RenderTransform>
+
+        <Border Background="{Binding BackgroundBrush}" BorderBrush="#33FFFFFF" BorderThickness="0" ClipToBounds="True">
+            <Grid>
+                <!-- FRONT CONTENT -->
+                <Grid x:Name="FrontContent">
+                    <Grid.RenderTransform>
+                        <TranslateTransform x:Name="FrontTranslate" Y="0"/>
+                    </Grid.RenderTransform>
+                    
+                    <!-- Full-bleed background wallpaper for Desktop tile -->
+                    <Image Source="{Binding DesktopWallpaperSource}"
+                           Stretch="UniformToFill" 
+                           RenderOptions.BitmapScalingMode="HighQuality"
+                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Image.Style>
+                            <Style TargetType="Image">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsDesktopTile}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Image.Style>
+                    </Image>
+
+                    <!-- Icon / Vector / Glyph -->
+                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,8">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsDesktopTile}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        <!-- Image Logo (Authentic Metro PNG with full scaling and offset) -->
+                        <Image Source="{Binding IconImagePath}" 
+                               Width="{Binding EffectiveIconWidth}" 
+                               Height="{Binding EffectiveIconHeight}"
+                               Stretch="{Binding IconStretch}"
+                               RenderOptions.BitmapScalingMode="HighQuality"
+                               HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Image.RenderTransform>
+                                <TranslateTransform X="{Binding IconOffsetX}" Y="{Binding IconOffsetY}"/>
+                            </Image.RenderTransform>
+                            <Image.Style>
+                                <Style TargetType="Image">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasIconImage}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Image.Style>
+                        </Image>
+
+                        <!-- Vector SVG Icon (Fallback if no PNG image) -->
+                        <Path Data="{Binding IconVectorPath}" Fill="White" Stretch="Uniform"
+                              Width="{Binding IconSize}" Height="{Binding IconSize}"
+                              HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Path.RenderTransform>
+                                <TranslateTransform X="{Binding IconOffsetX}" Y="{Binding IconOffsetY}"/>
+                            </Path.RenderTransform>
+                            <Path.Style>
+                                <Style TargetType="Path">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding HasIconImage}" Value="False"/>
+                                                <Condition Binding="{Binding HasVectorPath}" Value="True"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Path.Style>
+                        </Path>
+
+                        <!-- Emoji/Text Glyph Fallback (If neither PNG nor Vector) -->
+                        <TextBlock Text="{Binding IconGlyph}" FontSize="36" Foreground="White"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis">
+                            <TextBlock.RenderTransform>
+                                <TranslateTransform X="{Binding IconOffsetX}" Y="{Binding IconOffsetY}"/>
+                            </TextBlock.RenderTransform>
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding HasIconImage}" Value="False"/>
+                                                <Condition Binding="{Binding HasVectorPath}" Value="False"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                    
+                    <!-- Front Title -->
+                    <TextBlock Text="{Binding Title}" FontSize="11" Foreground="White"
+                               Margin="8,0,8,6" VerticalAlignment="Bottom"
+                               TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"
+                               MaxHeight="18"/>
+                </Grid>
+
+                <!-- BACK LIVE CONTENT -->
+                <Grid x:Name="BackContent" ClipToBounds="True">
+                    <Grid.RenderTransform>
+                        <TranslateTransform x:Name="BackTranslate" Y="340"/>
+                    </Grid.RenderTransform>
+                    
+                    <!-- 1. PHOTO + HEADLINE BANNER TEMPLATE (Sports, News, etc.) -->
+                    <Grid x:Name="PhotoBannerTemplate">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsPhotoBannerTemplate}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Top Photo -->
+                        <Image Grid.Row="0"
+                               Source="{Binding LiveImagePath}"
+                               Stretch="UniformToFill"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               RenderOptions.BitmapScalingMode="HighQuality"/>
+
+                        <!-- Bottom Colored Banner -->
+                        <Border Grid.Row="1"
+                                Background="{Binding LiveBannerBrush}"
+                                MinHeight="44"
+                                Padding="8,4,8,4">
+                            <Grid VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Vector Icon in Banner -->
+                                <Path Grid.Column="0"
+                                      Data="{Binding LiveBannerIcon}"
+                                      Fill="White"
+                                      Stretch="Uniform"
+                                      Width="20" Height="20"
+                                      Margin="2,0,8,0"
+                                      VerticalAlignment="Center">
+                                    <Path.Style>
+                                        <Style TargetType="Path">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasLiveBannerIcon}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Path.Style>
+                                </Path>
+
+                                <!-- Headline text in Banner -->
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding LiveHeadline}"
+                                               FontSize="12.5"
+                                               FontFamily="Segoe UI"
+                                               FontWeight="Normal"
+                                               Foreground="White"
+                                               VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
+                                               TextWrapping="NoWrap"/>
+                                    <TextBlock Text="{Binding LiveSubheadline}"
+                                               FontSize="11.5"
+                                               FontFamily="Segoe UI"
+                                               FontWeight="Normal"
+                                               Foreground="#E8FFFFFF"
+                                               Margin="0,1,0,0"
+                                               TextTrimming="CharacterEllipsis"
+                                               TextWrapping="NoWrap">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasLiveSubheadline}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <!-- 2. FINANCE / STOCK QUOTES TEMPLATE -->
+                    <Grid x:Name="FinanceTemplate" Background="{Binding BackgroundBrush}">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsFinanceTemplate}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+
+                        <StackPanel Margin="14,14,14,0" VerticalAlignment="Top">
+                            <!-- Row 1: DOW -->
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding LiveQuote1Name}" FontSize="12.5" Foreground="White" FontFamily="Segoe UI"/>
+                                <TextBlock Grid.Column="1" Text="{Binding LiveQuote1Line}" FontSize="12.5" Foreground="White" FontFamily="Segoe UI" HorizontalAlignment="Right"/>
+                            </Grid>
+
+                            <!-- Row 2: FTSE 100 -->
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding LiveQuote2Name}" FontSize="12.5" Foreground="White" FontFamily="Segoe UI"/>
+                                <TextBlock Grid.Column="1" Text="{Binding LiveQuote2Line}" FontSize="12.5" Foreground="White" FontFamily="Segoe UI" HorizontalAlignment="Right"/>
+                            </Grid>
+
+                            <!-- Row 3: NIKKEI 225 -->
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding LiveQuote3Name}" FontSize="12.5" Foreground="White" FontFamily="Segoe UI"/>
+                                <TextBlock Grid.Column="1" Text="{Binding LiveQuote3Line}" FontSize="12.5" Foreground="White" FontFamily="Segoe UI" HorizontalAlignment="Right"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Bottom Left Title -->
+                        <TextBlock Text="{Binding Title}" FontSize="11" Foreground="White"
+                                   Margin="10,0,10,6" VerticalAlignment="Bottom"
+                                   TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"/>
+                    </Grid>
+
+                    <!-- 3. WEATHER TEMPLATE -->
+                    <Grid x:Name="WeatherTemplate" Background="{Binding BackgroundBrush}">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsWeatherTemplate}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+
+                        <!-- Full-bleed Sky Photo Background -->
+                        <Image Source="{Binding LiveImagePath}" 
+                               Stretch="UniformToFill"
+                               RenderOptions.BitmapScalingMode="HighQuality"
+                               HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Image.Style>
+                                <Style TargetType="Image">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasLiveImage}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Image.Style>
+                        </Image>
+
+                        <StackPanel Margin="14,12,14,0" VerticalAlignment="Top">
+                            <TextBlock Text="{Binding LiveCity}" FontSize="12.5" Foreground="#CCFFFFFF" FontFamily="Segoe UI">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect BlurRadius="4" ShadowDepth="1" Direction="315" Color="#B0000000" Opacity="0.9"/>
+                                </TextBlock.Effect>
+                            </TextBlock>
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                <TextBlock Text="{Binding LiveTemperature}" FontSize="34" Foreground="White" FontFamily="Segoe UI Light" VerticalAlignment="Center">
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect BlurRadius="4" ShadowDepth="1.5" Direction="315" Color="#B0000000" Opacity="0.9"/>
+                                    </TextBlock.Effect>
+                                </TextBlock>
+                                <TextBlock Text=" ⛅" FontSize="24" Foreground="White" VerticalAlignment="Center" Margin="6,0,0,0">
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect BlurRadius="4" ShadowDepth="1.5" Direction="315" Color="#B0000000" Opacity="0.9"/>
+                                    </TextBlock.Effect>
+                                </TextBlock>
+                            </StackPanel>
+                            <TextBlock Text="{Binding LiveCondition}" FontSize="12" Foreground="White" FontFamily="Segoe UI" Margin="0,2,0,0">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect BlurRadius="4" ShadowDepth="1" Direction="315" Color="#B0000000" Opacity="0.9"/>
+                                </TextBlock.Effect>
+                            </TextBlock>
+                        </StackPanel>
+
+                        <TextBlock Text="{Binding Title}" FontSize="11" Foreground="White"
+                                   Margin="10,0,10,6" VerticalAlignment="Bottom"
+                                   TextTrimming="CharacterEllipsis" TextWrapping="NoWrap">
+                            <TextBlock.Effect>
+                                <DropShadowEffect BlurRadius="4" ShadowDepth="1" Direction="315" Color="#B0000000" Opacity="0.9"/>
+                            </TextBlock.Effect>
+                        </TextBlock>
+                    </Grid>
+
+                    <!-- 5. WINDOWS STORE FEATURED APP SHOWCASE TEMPLATE (Аутентичный вид витрины приложения Windows 8.1) -->
+                    <Grid x:Name="StoreTemplate" Background="{Binding BackgroundBrush}">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsStoreTemplate}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+
+                        <Grid Margin="18,18,18,14">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Вверху слева: иконка приложения / игры с легким скруглением -->
+                            <Rectangle Grid.Row="0" Width="84" Height="84" RadiusX="8" RadiusY="8" HorizontalAlignment="Left"
+                                       RenderOptions.BitmapScalingMode="HighQuality">
+                                <Rectangle.Fill>
+                                    <ImageBrush ImageSource="{Binding StoreAppIconSource}" Stretch="UniformToFill"/>
+                                </Rectangle.Fill>
+                            </Rectangle>
+
+                            <!-- Посередине: Крупный заголовок ("Командуйте механи...") и название приложения ("Dawn of Steel") -->
+                            <StackPanel Grid.Row="1" VerticalAlignment="Center" Margin="0,10,0,0">
+                                <TextBlock Text="{Binding StoreHeadline}"
+                                           FontSize="21"
+                                           FontFamily="{StaticResource SegoeLight}"
+                                           Foreground="White"
+                                           TextTrimming="CharacterEllipsis"
+                                           TextWrapping="NoWrap"
+                                           Margin="0,0,0,4"/>
+
+                                <TextBlock Text="{Binding StoreAppName}"
+                                           FontSize="13.5"
+                                           FontFamily="Segoe UI"
+                                           Foreground="#E0FFFFFF"
+                                           TextTrimming="CharacterEllipsis"
+                                           TextWrapping="NoWrap"
+                                           Margin="0,0,0,6"/>
+
+                                <TextBlock Text="{Binding StoreRatingPrice}"
+                                           FontSize="12"
+                                           FontFamily="Segoe UI"
+                                           Foreground="#D0FFFFFF"
+                                           TextTrimming="CharacterEllipsis"
+                                           TextWrapping="NoWrap"/>
+                            </StackPanel>
+
+                            <!-- Внизу: значок сумки Windows Store слева и бейдж справа -->
+                            <Grid Grid.Row="2" VerticalAlignment="Bottom" Margin="0,6,0,0">
+                                <Path Data="M19,6H16A4,4 0 0,0 12,2A4,4 0 0,0 8,6H5A2,2 0 0,0 3,8V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V8A2,2 0 0,0 19,6M12,4A2,2 0 0,1 14,6H10A2,2 0 0,1 12,4M19,20H5V8H19V20Z"
+                                      Fill="White" Stretch="Uniform" Width="22" Height="22" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+
+                                <TextBlock Text="{Binding StoreBadgeCount}"
+                                           FontSize="15"
+                                           FontFamily="Segoe UI Semibold"
+                                           Foreground="White"
+                                           HorizontalAlignment="Right"
+                                           VerticalAlignment="Center"/>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+
+                    <!-- 6. GAMES SHOWCASE TEMPLATE -->
+                    <Grid x:Name="GamesTemplate" Background="{Binding BackgroundBrush}">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsGamesTemplate}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+
+                        <!-- Small Tile (72x72) Layout -->
+                        <Border CornerRadius="8" Margin="4" ClipToBounds="True"
+                                HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Size}" Value="Small">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Setter Property="Width" Value="58"/>
+                                            <Setter Property="Height" Value="58"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <Image Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality">
+                                <Image.Source>
+                                    <PriorityBinding>
+                                        <Binding Path="GameIconSource"/>
+                                        <Binding Path="GameIcon"/>
+                                    </PriorityBinding>
+                                </Image.Source>
+                            </Image>
+                        </Border>
+
+                        <!-- Medium / Wide / Large Tiles Layout -->
+                        <Grid Margin="10">
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Size}" Value="Small">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Rectangle Grid.Row="0" Width="74" Height="74" RadiusX="12" RadiusY="12"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Rectangle.Fill>
+                                    <ImageBrush ImageSource="{Binding GameIconSource}" Stretch="UniformToFill"/>
+                                </Rectangle.Fill>
+                            </Rectangle>
+
+                            <StackPanel Grid.Row="1" Margin="0,4,0,0">
+                                <TextBlock Text="{Binding GameTitle}" FontSize="12" FontFamily="Segoe UI" FontWeight="SemiBold" Foreground="White"
+                                           TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{Binding GameSubtitle}" FontSize="10" FontFamily="Segoe UI" Foreground="#CCFFFFFF"
+                                           TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+
+                    <!-- 4. STANDARD TEXT FALLBACK TEMPLATE -->
+                    <Grid x:Name="StandardTemplate">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsStandardTextTemplate}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+
+                        <!-- Live Description with padding and ellipsis -->
+                        <TextBlock Text="{Binding LiveText}" FontSize="11.5" Foreground="White"
+                                   TextWrapping="Wrap" TextTrimming="CharacterEllipsis"
+                                   Margin="10,10,10,24" VerticalAlignment="Top"
+                                   MaxHeight="260" LineHeight="16"/>
+                        
+                        <!-- Back Title (Fixed at bottom) -->
+                        <TextBlock Text="{Binding Title}" FontSize="10" Foreground="#CCFFFFFF"
+                                   Margin="8,0,8,4" VerticalAlignment="Bottom"
+                                   TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"
+                                   MaxHeight="16"/>
+                    </Grid>
+                </Grid>
+
+                <!-- Обводка при наведении (Цвет фона темы) -->
+                <Border x:Name="HoverBorder" 
+                        BorderBrush="{DynamicResource ThemeTileHoverBorderBrush}" 
+                        BorderThickness="0" 
+                        IsHitTestVisible="False"/>
+
+                <!-- SELECTION BADGE -->
+                <Border x:Name="SelectionBadge" Width="22" Height="22" CornerRadius="11" Background="White"
+                        HorizontalAlignment="Right" VerticalAlignment="Top" Margin="5" Visibility="Collapsed">
+                    <Path Data="M9,16.17L4.83,12L3.41,13.41L9,19L21,7L19.59,5.59L9,16.17Z"
+                          Fill="#FF0078D7" Stretch="Uniform" Width="12" Height="12"/>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

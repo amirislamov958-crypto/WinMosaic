@@ -1,0 +1,168 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:models="clr-namespace:Win8StartScreen.Models"
+                    xmlns:conv="clr-namespace:Win8StartScreen.Converters">
+
+    <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+
+    <!-- ===================== ЦВЕТОВАЯ ПАЛИТРА METRO (эпоха Windows 8 / 8.1) ===================== -->
+    <SolidColorBrush x:Key="StartScreenBackgroundBrush" Color="#FF1BA1E2"/>
+
+    <SolidColorBrush x:Key="MetroLime"    Color="#FFA4C400"/>
+    <SolidColorBrush x:Key="MetroGreen"   Color="#FF60A917"/>
+    <SolidColorBrush x:Key="MetroEmerald" Color="#FF008A00"/>
+    <SolidColorBrush x:Key="MetroTeal"    Color="#FF00ABA9"/>
+    <SolidColorBrush x:Key="MetroCyan"    Color="#FF1BA1E2"/>
+    <SolidColorBrush x:Key="MetroCobalt"  Color="#FF0050EF"/>
+    <SolidColorBrush x:Key="MetroIndigo"  Color="#FF6A00FF"/>
+    <SolidColorBrush x:Key="MetroViolet"  Color="#FFAA00FF"/>
+    <SolidColorBrush x:Key="MetroPink"    Color="#FFF472D0"/>
+    <SolidColorBrush x:Key="MetroMagenta" Color="#FFD80073"/>
+    <SolidColorBrush x:Key="MetroCrimson" Color="#FFA20025"/>
+    <SolidColorBrush x:Key="MetroRed"     Color="#FFE51400"/>
+    <SolidColorBrush x:Key="MetroOrange"  Color="#FFFA6800"/>
+    <SolidColorBrush x:Key="MetroAmber"   Color="#FFF0A30A"/>
+    <SolidColorBrush x:Key="MetroBrown"   Color="#FF825A2C"/>
+    <SolidColorBrush x:Key="MetroSteel"   Color="#FF647687"/>
+
+    <!-- ===================== ТИПОГРАФИКА (аутентичная для 8.1) ===================== -->
+    <FontFamily x:Key="MetroLightFont">Segoe UI Light</FontFamily>
+    <FontFamily x:Key="MetroSemilightFont">Segoe UI Semilight</FontFamily>
+    <FontFamily x:Key="MetroSemiboldFont">Segoe UI Semibold</FontFamily>
+    <FontFamily x:Key="MetroSymbolFont">Segoe UI Symbol</FontFamily>
+
+    <Style x:Key="GroupHeaderStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource MetroLightFont}"/>
+        <Setter Property="FontSize" Value="28"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Margin" Value="4,0,0,12"/>
+    </Style>
+
+    <!-- ===================== СЕТОЧНЫЕ КОНСТАНТЫ =====================
+         Единица сетки Windows 8.1 = 150 (Medium), зазор = 8.
+         Small = (150 - 8) / 2 = 71
+         Wide  = 150 * 2 + 8   = 308
+         Large = 150 * 2 + 8   = 308 (квадрат) -->
+
+    <!-- ===================== СТИЛЬ ПЛИТКИ (плоский Metro-дизайн, без теней и скруглений) ===================== -->
+    <Style x:Key="MetroTileStyle" TargetType="Button">
+        <Setter Property="Margin" Value="0,0,8,8"/>
+        <Setter Property="Width" Value="150"/>
+        <Setter Property="Height" Value="150"/>
+        <Setter Property="Background" Value="{Binding Background}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="HorizontalAlignment" Value="Left"/>
+        <Setter Property="VerticalAlignment" Value="Top"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <!-- ScaleTransform для лёгкого "press-down" эффекта, как в 8.1 -->
+                    <Grid x:Name="RootGrid" Background="{TemplateBinding Background}"
+                          RenderTransformOrigin="0.5,0.5">
+                        <Grid.RenderTransform>
+                            <ScaleTransform x:Name="PressScale" ScaleX="1" ScaleY="1"/>
+                        </Grid.RenderTransform>
+
+                        <!-- затемнение при нажатии -->
+                        <Border x:Name="PressOverlay" Background="Black" Opacity="0"/>
+
+                        <!-- динамическая рамка-обводка при наведении -->
+                        <Border x:Name="HoverBorder" BorderBrush="{DynamicResource ThemeTileHoverBorderBrush}" BorderThickness="0"/>
+
+                        <Grid Margin="12">
+                            <TextBlock x:Name="GlyphText"
+                                       Text="{Binding Glyph}"
+                                       FontFamily="{StaticResource MetroSymbolFont}"
+                                       FontSize="{Binding GlyphSize}"
+                                       Foreground="White"
+                                       HorizontalAlignment="Left"
+                                       VerticalAlignment="Top"
+                                       Opacity="0.95"/>
+
+                            <TextBlock x:Name="TitleText"
+                                       Text="{Binding Title}"
+                                       FontFamily="{StaticResource MetroSemilightFont}"
+                                       FontSize="15"
+                                       Foreground="White"
+                                       TextWrapping="Wrap"
+                                       HorizontalAlignment="Left"
+                                       VerticalAlignment="Bottom"
+                                       Visibility="{Binding ShowTitle, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Visible}"/>
+                        </Grid>
+                    </Grid>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="HoverBorder" Property="BorderThickness" Value="2"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="PressOverlay" Property="Opacity" Value="0.35"/>
+                            <Setter TargetName="RootGrid" Property="RenderTransform">
+                                <Setter.Value>
+                                    <ScaleTransform ScaleX="0.96" ScaleY="0.96"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+
+                        <!-- Small-плитки в 8.1 показывают только иконку по центру, без подписи -->
+                        <DataTrigger Binding="{Binding Size}" Value="Small">
+                            <Setter TargetName="TitleText" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="GlyphText" Property="HorizontalAlignment" Value="Center"/>
+                            <Setter TargetName="GlyphText" Property="VerticalAlignment" Value="Center"/>
+                            <Setter TargetName="GlyphText" Property="FontSize" Value="26"/>
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Size}" Value="Small">
+                <Setter Property="Width" Value="71"/>
+                <Setter Property="Height" Value="71"/>
+                <Setter Property="Margin" Value="0,0,8,8"/>
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Size}" Value="Wide">
+                <Setter Property="Width" Value="308"/>
+                <Setter Property="Height" Value="150"/>
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Size}" Value="Large">
+                <Setter Property="Width" Value="308"/>
+                <Setter Property="Height" Value="308"/>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- ===================== НЕЯВНЫЕ DataTemplate ПО ТИПУ ДАННЫХ =====================
+         WPF сам подбирает нужный шаблон по типу элемента (TileModel или
+         SmallTileCluster) — это устраняет ручное сопоставление "иконка -> позиция",
+         которое и было причиной перепутанных иконок. -->
+
+    <DataTemplate DataType="{x:Type models:TileModel}">
+        <Button Style="{StaticResource MetroTileStyle}"
+                Tag="{Binding Id}"/>
+    </DataTemplate>
+
+    <!-- Кластер 2x2 мелких плиток — фикс наложения/обрезки.
+         UniformGrid ВСЕГДА делит доступное пространство поровну на Rows*Columns
+         ячеек, поэтому коллизии геометрически исключены. -->
+    <DataTemplate DataType="{x:Type models:SmallTileCluster}">
+        <ItemsControl ItemsSource="{Binding SmallTiles}"
+                      Margin="0,0,8,8"
+                      Focusable="False">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Rows="2" Columns="2" Width="150" Height="150"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemContainerStyle>
+                <Style TargetType="ContentPresenter">
+                    <Setter Property="Margin" Value="0"/>
+                </Style>
+            </ItemsControl.ItemContainerStyle>
+        </ItemsControl>
+    </DataTemplate>
+
+</ResourceDictionary>
