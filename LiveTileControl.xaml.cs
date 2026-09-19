@@ -1162,7 +1162,56 @@ namespace Win8StartScreen
 
             cm.Items.Add(new Separator { Background = new SolidColorBrush(Color.FromArgb(60, 255, 255, 255)) });
 
-            // 4. Открыть в редакторе (Studio)
+            // 4. Сменить значок из каталога Metro
+            var changeIconItem = new MenuItem { Header = "Сменить значок (Каталог Metro)...", Foreground = Brushes.White };
+            changeIconItem.Click += (s, ev) =>
+            {
+                try
+                {
+                    var dlg = new Win8StartScreen.Views.MetroIconPickerDialog
+                    {
+                        Owner = Application.Current?.MainWindow
+                    };
+                    if (dlg.ShowDialog() == true && !string.IsNullOrEmpty(dlg.SelectedIconPath))
+                    {
+                        model.IconImagePath = dlg.SelectedIconPath;
+                        model.IconVectorPath = string.Empty;
+                        model.IconGlyph = string.Empty;
+                        if (dlg.ChosenIconSize > 0) model.IconSize = dlg.ChosenIconSize;
+                        MainWindow.Instance?.SaveLayoutConfig();
+                    }
+                }
+                catch { }
+            };
+            cm.Items.Add(changeIconItem);
+
+            // 5. Выбрать файл значка
+            var browseIconItem = new MenuItem { Header = "Выбрать файл значка...", Foreground = Brushes.White };
+            browseIconItem.Click += (s, ev) =>
+            {
+                try
+                {
+                    var ofd = new Microsoft.Win32.OpenFileDialog
+                    {
+                        Title = "Выберите значок для плитки",
+                        Filter = "Изображения и значки (*.png;*.ico;*.jpg;*.jpeg;*.bmp;*.webp;*.svg)|*.png;*.ico;*.jpg;*.jpeg;*.bmp;*.webp;*.svg|Все файлы (*.*)|*.*",
+                        CheckFileExists = true
+                    };
+                    if (ofd.ShowDialog() == true && System.IO.File.Exists(ofd.FileName))
+                    {
+                        model.IconImagePath = ofd.FileName;
+                        model.IconVectorPath = string.Empty;
+                        model.IconGlyph = string.Empty;
+                        MainWindow.Instance?.SaveLayoutConfig();
+                    }
+                }
+                catch { }
+            };
+            cm.Items.Add(browseIconItem);
+
+            cm.Items.Add(new Separator { Background = new SolidColorBrush(Color.FromArgb(60, 255, 255, 255)) });
+
+            // 6. Открыть в редакторе (Studio)
             var studioItem = new MenuItem { Header = "Редактировать в Studio...", Foreground = Brushes.White };
             studioItem.Click += (s, ev) =>
             {

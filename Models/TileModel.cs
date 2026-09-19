@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace Win8StartScreen.Models
 {
@@ -369,12 +370,56 @@ namespace Win8StartScreen.Models
             {
                 _iconImagePath = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(IconImageSource));
                 OnPropertyChanged(nameof(HasIconImage));
+                OnPropertyChanged(nameof(EffectiveIconWidth));
+                OnPropertyChanged(nameof(EffectiveIconHeight));
+                OnPropertyChanged(nameof(DisplayTitle));
             }
         }
 
         [JsonIgnore]
-        public bool HasIconImage => !string.IsNullOrEmpty(IconImagePath) && (System.IO.File.Exists(IconImagePath) || IconImagePath.StartsWith("pack://"));
+        public ImageSource? IconImageSource
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(IconImagePath)) return null;
+                try
+                {
+                    if (IconImagePath.StartsWith("pack://", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return new BitmapImage(new Uri(IconImagePath, UriKind.Absolute));
+                    }
+
+                    string path = IconImagePath;
+                    if (!System.IO.File.Exists(path))
+                    {
+                        string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                        string candidate = System.IO.Path.Combine(baseDir, path.TrimStart('\\', '/').Replace('/', '\\'));
+                        if (System.IO.File.Exists(candidate))
+                        {
+                            path = candidate;
+                        }
+                    }
+
+                    if (System.IO.File.Exists(path))
+                    {
+                        var bmp = new BitmapImage();
+                        bmp.BeginInit();
+                        bmp.CacheOption = BitmapCacheOption.OnLoad;
+                        bmp.UriSource = new Uri(System.IO.Path.GetFullPath(path), UriKind.Absolute);
+                        bmp.EndInit();
+                        bmp.Freeze();
+                        return bmp;
+                    }
+                }
+                catch { }
+                return null;
+            }
+        }
+
+        [JsonIgnore]
+        public bool HasIconImage => IconImageSource != null;
 
         public string IconVectorPath
         {

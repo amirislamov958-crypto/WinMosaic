@@ -3758,11 +3758,28 @@ namespace Win8StartScreen
             if (applyColor)
             {
                 string hex = $"#{_eyedropperSampledColor.A:X2}{_eyedropperSampledColor.R:X2}{_eyedropperSampledColor.G:X2}{_eyedropperSampledColor.B:X2}";
-                _addTileSelectedColor = hex;
-                _isUpdatingColorHex = true;
-                if (AddTileColorHexInput != null) AddTileColorHexInput.Text = hex;
-                _isUpdatingColorHex = false;
-                UpdateTilePreview();
+                if (_isStudioEyedropper)
+                {
+                    _isStudioEyedropper = false;
+                    if (_studioSelectedTile != null)
+                    {
+                        _studioSelectedTile.BackgroundColor = hex;
+                        SaveLayoutConfig();
+                        UpdateStudioSelectedTileUI();
+                    }
+                }
+                else
+                {
+                    _addTileSelectedColor = hex;
+                    _isUpdatingColorHex = true;
+                    if (AddTileColorHexInput != null) AddTileColorHexInput.Text = hex;
+                    _isUpdatingColorHex = false;
+                    UpdateTilePreview();
+                }
+            }
+            else
+            {
+                _isStudioEyedropper = false;
             }
         }
 
@@ -4384,12 +4401,15 @@ namespace Win8StartScreen
         // =========================================================================
         private TileModel? _studioSelectedTile = null;
         private bool _isStudioUpdating = false;
+        private bool _isStudioEyedropper = false;
 
         private void InitStudioView(TileModel? targetTile = null)
         {
             _isStudioUpdating = true;
             try
             {
+                InitStudioColorsPalette();
+
                 StudioTileSelector.ItemsSource = null;
                 StudioTileSelector.ItemsSource = StartTiles.ToList();
 
@@ -4410,6 +4430,43 @@ namespace Win8StartScreen
             }
         }
 
+        private void InitStudioColorsPalette()
+        {
+            if (StudioColorsWrapPanel == null || StudioColorsWrapPanel.Children.Count > 0) return;
+
+            string[] metroColors = new[]
+            {
+                "#FF0078D7", "#FF004E8C", "#FF008A00", "#FF107C41",
+                "#FF68217A", "#FFD80073", "#FFD24726", "#FFFF4500",
+                "#FFFF8C00", "#FF008299", "#FF00A4EF", "#FF2D2D30"
+            };
+
+            foreach (var colorHex in metroColors)
+            {
+                var btn = new Border
+                {
+                    Width = 32,
+                    Height = 32,
+                    Margin = new Thickness(0, 0, 8, 8),
+                    Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(colorHex)),
+                    Cursor = Cursors.Hand,
+                    Tag = colorHex,
+                    BorderThickness = new Thickness(1),
+                    BorderBrush = new SolidColorBrush(Color.FromArgb(80, 255, 255, 255))
+                };
+
+                string hexCapture = colorHex;
+                btn.MouseLeftButtonUp += (s, e) =>
+                {
+                    if (_studioSelectedTile == null) return;
+                    _studioSelectedTile.BackgroundColor = hexCapture;
+                    SaveLayoutConfig();
+                    UpdateStudioSelectedTileUI();
+                };
+                StudioColorsWrapPanel.Children.Add(btn);
+            }
+        }
+
         private void StudioTileSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isStudioUpdating) return;
@@ -4425,6 +4482,10 @@ namespace Win8StartScreen
                 StudioTileTitleText.Text = "Плитка не выбрана";
                 StudioTileDetailsText.Text = "Размер: -, Позиция: -";
                 HighlightStudioSizeButtons(null);
+                if (StudioTilePreviewBox != null) StudioTilePreviewBox.Background = Brushes.Transparent;
+                if (StudioTilePreviewImage != null) StudioTilePreviewImage.Visibility = Visibility.Collapsed;
+                if (StudioTilePreviewVector != null) StudioTilePreviewVector.Visibility = Visibility.Collapsed;
+                if (StudioTilePreviewGlyph != null) StudioTilePreviewGlyph.Visibility = Visibility.Collapsed;
                 return;
             }
 
@@ -4441,8 +4502,245 @@ namespace Win8StartScreen
             StudioTileDetailsText.Text = $"Размер: {sizeStr}\nПозиция: X={Math.Round(_studioSelectedTile.X)}, Y={Math.Round(_studioSelectedTile.Y)}";
             HighlightStudioSizeButtons(_studioSelectedTile.Size);
 
+            // Обновление заголовка в поле ввода
+            if (StudioTileTitleInput != null && StudioTileTitleInput.Text != _studioSelectedTile.Title)
+            {
+                _isStudioUpdating = true;
+                StudioTileTitleInput.Text = _studioSelectedTile.Title;
+                _isStudioUpdating = false;
+            }
+
+            // Обновление цвета и образца
+            if (StudioTilePreviewBox != null)
+            {
+                StudioTilePreviewBox.Background = _studioSelectedTile.BackgroundBrush;
+            }
+            if (StudioColorSwatch != null)
+            {
+                StudioColorSwatch.Background = _studioSelectedTile.BackgroundBrush;
+            }
+            if (StudioColorHexInput != null && StudioColorHexInput.Text != _studioSelectedTile.BackgroundColor)
+            {
+                _isStudioUpdating = true;
+                StudioColorHexInput.Text = _studioSelectedTile.BackgroundColor;
+                _isStudioUpdating = false;
+            }
+
+            // Обновление ползунка размера значка
+            if (StudioIconSizeSlider != null)
+            {
+                _isStudioUpdating = true;
+                StudioIconSizeSlider.Value = Math.Clamp(_studioSelectedTile.IconSize, 24, 300);
+                _isStudioUpdating = false;
+            }
+            if (StudioIconSizeText != null)
+            {
+                StudioIconSizeText.Text = $"{_studioSelectedTile.IconSize:F0} px ({(_studioSelectedTile.IconSize / 64.0) * 100:F0}%)";
+            }
+
+            // Обновление миниатюры значка в превью
+            if (_studioSelectedTile.HasIconImage && _studioSelectedTile.IconImageSource != null)
+            {
+                if (StudioTilePreviewImage != null)
+                {
+                    StudioTilePreviewImage.Source = _studioSelectedTile.IconImageSource;
+                    StudioTilePreviewImage.Visibility = Visibility.Visible;
+                }
+                if (StudioTilePreviewVector != null) StudioTilePreviewVector.Visibility = Visibility.Collapsed;
+                if (StudioTilePreviewGlyph != null) StudioTilePreviewGlyph.Visibility = Visibility.Collapsed;
+            }
+            else if (_studioSelectedTile.HasVectorPath)
+            {
+                if (StudioTilePreviewVector != null)
+                {
+                    try
+                    {
+                        StudioTilePreviewVector.Data = Geometry.Parse(_studioSelectedTile.IconVectorPath);
+                        StudioTilePreviewVector.Visibility = Visibility.Visible;
+                    }
+                    catch
+                    {
+                        StudioTilePreviewVector.Visibility = Visibility.Collapsed;
+                    }
+                }
+                if (StudioTilePreviewImage != null) StudioTilePreviewImage.Visibility = Visibility.Collapsed;
+                if (StudioTilePreviewGlyph != null) StudioTilePreviewGlyph.Visibility = Visibility.Collapsed;
+            }
+            else if (!string.IsNullOrEmpty(_studioSelectedTile.IconGlyph))
+            {
+                if (StudioTilePreviewGlyph != null)
+                {
+                    StudioTilePreviewGlyph.Text = _studioSelectedTile.IconGlyph;
+                    StudioTilePreviewGlyph.Visibility = Visibility.Visible;
+                }
+                if (StudioTilePreviewImage != null) StudioTilePreviewImage.Visibility = Visibility.Collapsed;
+                if (StudioTilePreviewVector != null) StudioTilePreviewVector.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                if (StudioTilePreviewImage != null) StudioTilePreviewImage.Visibility = Visibility.Collapsed;
+                if (StudioTilePreviewVector != null) StudioTilePreviewVector.Visibility = Visibility.Collapsed;
+                if (StudioTilePreviewGlyph != null) StudioTilePreviewGlyph.Visibility = Visibility.Collapsed;
+            }
+
+            // Выделение активного цвета в палитре
+            if (StudioColorsWrapPanel != null)
+            {
+                foreach (UIElement child in StudioColorsWrapPanel.Children)
+                {
+                    if (child is Border b && b.Tag is string hex)
+                    {
+                        bool isSel = string.Equals(hex, _studioSelectedTile.BackgroundColor, StringComparison.OrdinalIgnoreCase);
+                        b.BorderThickness = isSel ? new Thickness(2) : new Thickness(1);
+                        b.BorderBrush = isSel ? Brushes.White : new SolidColorBrush(Color.FromArgb(80, 255, 255, 255));
+                    }
+                }
+            }
+
             // Прокручиваем холст к выбранной плитке для наглядности
             StartTilesScrollViewer.ScrollToHorizontalOffset(Math.Max(0, _studioSelectedTile.X - 200));
+        }
+
+        private void StudioTileTitleInput_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_isStudioUpdating || _studioSelectedTile == null) return;
+            _studioSelectedTile.Title = StudioTileTitleInput.Text?.Trim() ?? "";
+            SaveLayoutConfig();
+            if (StudioTileTitleText != null) StudioTileTitleText.Text = _studioSelectedTile.Title;
+        }
+
+        private void StudioOpenIconCatalog_Click(object sender, RoutedEventArgs e)
+        {
+            if (_studioSelectedTile == null) return;
+            try
+            {
+                var dlg = new Win8StartScreen.Views.MetroIconPickerDialog
+                {
+                    Owner = this
+                };
+                if (dlg.ShowDialog() == true && !string.IsNullOrEmpty(dlg.SelectedIconPath))
+                {
+                    _studioSelectedTile.IconImagePath = dlg.SelectedIconPath;
+                    _studioSelectedTile.IconVectorPath = string.Empty;
+                    _studioSelectedTile.IconGlyph = string.Empty;
+                    if (dlg.ChosenIconSize > 0)
+                    {
+                        _studioSelectedTile.IconSize = dlg.ChosenIconSize;
+                        if (StudioIconSizeSlider != null) StudioIconSizeSlider.Value = dlg.ChosenIconSize;
+                    }
+                    SaveLayoutConfig();
+                    UpdateStudioSelectedTileUI();
+                    ShowStudioStatus($"Значок плитки «{_studioSelectedTile.Title}» успешно изменен!");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[StudioOpenIconCatalog] Error: {ex.Message}");
+            }
+        }
+
+        private void StudioBrowseIcon_Click(object sender, RoutedEventArgs e)
+        {
+            if (_studioSelectedTile == null) return;
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = "Выберите значок для плитки",
+                Filter = "Файлы изображений и значков (*.png;*.ico;*.jpg;*.jpeg;*.bmp;*.webp;*.svg)|*.png;*.ico;*.jpg;*.jpeg;*.bmp;*.webp;*.svg|Все файлы (*.*)|*.*",
+                CheckFileExists = true
+            };
+            if (dlg.ShowDialog() == true && System.IO.File.Exists(dlg.FileName))
+            {
+                _studioSelectedTile.IconImagePath = dlg.FileName;
+                _studioSelectedTile.IconVectorPath = string.Empty;
+                _studioSelectedTile.IconGlyph = string.Empty;
+                SaveLayoutConfig();
+                UpdateStudioSelectedTileUI();
+                ShowStudioStatus($"Значок плитки «{_studioSelectedTile.Title}» обновлен из файла!");
+            }
+        }
+
+        private void StudioResetIcon_Click(object sender, RoutedEventArgs e)
+        {
+            if (_studioSelectedTile == null) return;
+            _studioSelectedTile.IconImagePath = string.Empty;
+            _studioSelectedTile.IconSize = TileModel.GetDefaultIconSize(_studioSelectedTile.Size);
+            _studioSelectedTile.IconStretch = "Uniform";
+            if (StudioIconSizeSlider != null) StudioIconSizeSlider.Value = _studioSelectedTile.IconSize;
+            SaveLayoutConfig();
+            UpdateStudioSelectedTileUI();
+            ShowStudioStatus("Значок плитки сброшен.");
+        }
+
+        private void StudioIconSizeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_isStudioUpdating || _studioSelectedTile == null) return;
+            _studioSelectedTile.IconSize = e.NewValue;
+            if (StudioIconSizeText != null)
+            {
+                StudioIconSizeText.Text = $"{e.NewValue:F0} px ({(e.NewValue / 64.0) * 100:F0}%)";
+            }
+            SaveLayoutConfig();
+        }
+
+        private void StudioIconPreset_Click(object sender, RoutedEventArgs e)
+        {
+            if (_studioSelectedTile == null) return;
+            if (sender is Button btn && btn.Tag is string tag)
+            {
+                if (tag == "MAX")
+                {
+                    _studioSelectedTile.IconStretch = "UniformToFill";
+                    _studioSelectedTile.IconSize = _studioSelectedTile.Size switch
+                    {
+                        TileSize.Small => 71,
+                        TileSize.Wide => 240,
+                        TileSize.Large => 240,
+                        _ => 150
+                    };
+                }
+                else if (tag == "RESET")
+                {
+                    _studioSelectedTile.IconStretch = "Uniform";
+                    _studioSelectedTile.IconSize = TileModel.GetDefaultIconSize(_studioSelectedTile.Size);
+                }
+                else if (double.TryParse(tag, out double size))
+                {
+                    _studioSelectedTile.IconStretch = "Uniform";
+                    _studioSelectedTile.IconSize = size;
+                }
+                if (StudioIconSizeSlider != null) StudioIconSizeSlider.Value = _studioSelectedTile.IconSize;
+                SaveLayoutConfig();
+                UpdateStudioSelectedTileUI();
+            }
+        }
+
+        private void StudioColorHexInput_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_isStudioUpdating || _studioSelectedTile == null) return;
+            string hex = StudioColorHexInput.Text?.Trim() ?? "";
+            if (!hex.StartsWith("#")) hex = "#" + hex;
+            try
+            {
+                var color = (Color)ColorConverter.ConvertFromString(hex);
+                _studioSelectedTile.BackgroundColor = hex;
+                if (StudioColorSwatch != null) StudioColorSwatch.Background = new SolidColorBrush(color);
+                if (StudioTilePreviewBox != null) StudioTilePreviewBox.Background = new SolidColorBrush(color);
+                SaveLayoutConfig();
+            }
+            catch { }
+        }
+
+        private void StudioEyedropper_Click(object sender, RoutedEventArgs e)
+        {
+            _isStudioEyedropper = true;
+            Eyedropper_Click(sender, e);
+        }
+
+        private void ShowStudioStatus(string message)
+        {
+            if (StudioStatusMessage == null) return;
+            StudioStatusMessage.Text = message;
+            StudioStatusMessage.Visibility = Visibility.Visible;
         }
 
         private void HighlightStudioSizeButtons(TileSize? activeSize)
