@@ -732,9 +732,18 @@ namespace Win8StartScreen
                 {
                     string p = GetAssetPath("games_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
                 }
+                if (t.Equals("Money", StringComparison.OrdinalIgnoreCase) || t.Equals("Финансы", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("money_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
+                if (t.Equals("Sports", StringComparison.OrdinalIgnoreCase) || t.Equals("Спорт", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("sports_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
                 if (t.Equals("Store", StringComparison.OrdinalIgnoreCase) || t.Equals("Магазин", StringComparison.OrdinalIgnoreCase))
                 {
-                    string p = GetAssetPath("MetroIcons\\Applications\\Windows 8 Store.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                    string p = GetAssetPath("store_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                    p = GetAssetPath("MetroIcons\\Applications\\Windows 8 Store.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
                 }
                 if (t.Equals("Desktop", StringComparison.OrdinalIgnoreCase) || t.Equals("Рабочий стол", StringComparison.OrdinalIgnoreCase))
                 {
@@ -746,11 +755,32 @@ namespace Win8StartScreen
                 }
                 if (t.Equals("Internet Explorer", StringComparison.OrdinalIgnoreCase) || t.Equals("IE", StringComparison.OrdinalIgnoreCase))
                 {
-                    string p = GetAssetPath("MetroIcons\\Web Browsers\\Internet Explorer 10.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                    string p = GetAssetPath("ie_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                    p = GetAssetPath("MetroIcons\\Web Browsers\\Internet Explorer 10.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
                 }
                 if (t.Equals("Skype", StringComparison.OrdinalIgnoreCase))
                 {
                     string p = GetAssetPath("skype_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
+                if (t.Equals("Photos", StringComparison.OrdinalIgnoreCase) || t.Equals("Фотографии", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("photos_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
+                if (t.Equals("Maps", StringComparison.OrdinalIgnoreCase) || t.Equals("Карты", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("maps_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
+                if (t.Equals("News", StringComparison.OrdinalIgnoreCase) || t.Equals("Новости", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("news_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
+                if (t.Equals("OneDrive", StringComparison.OrdinalIgnoreCase) || t.Equals("SkyDrive", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("onedrive_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
+                if (t.Equals("OneNote", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("onenote_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
                 }
                 if (t.Equals("Discord", StringComparison.OrdinalIgnoreCase))
                 {
@@ -759,6 +789,14 @@ namespace Win8StartScreen
                 if (t.Equals("Health & Fitness", StringComparison.OrdinalIgnoreCase) || t.Equals("Здоровье и фитнес", StringComparison.OrdinalIgnoreCase))
                 {
                     string p = GetAssetPath("health_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
+                if (t.Equals("Food & Drink", StringComparison.OrdinalIgnoreCase) || t.Equals("Кулинария", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("food_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
+                if (t.Equals("Reading List", StringComparison.OrdinalIgnoreCase) || t.Equals("Список для чтения", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("readinglist_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
                 }
 
                 string metro = MetroIconResolver.ResolveIconPath(t);
@@ -814,7 +852,21 @@ namespace Win8StartScreen
             {
                 MetroIconResolver.Initialize();
                 string configPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Win8StartScreen", "layout_config.json");
-                if (!System.IO.File.Exists(configPath) || new System.IO.FileInfo(configPath).Length < 50)
+                bool needsDefault = !System.IO.File.Exists(configPath) || new System.IO.FileInfo(configPath).Length < 50;
+                if (!needsDefault)
+                {
+                    try
+                    {
+                        using var testDoc = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(configPath));
+                        if (!testDoc.RootElement.TryGetProperty("Version", out var verProp) || verProp.GetString() != "1.1")
+                        {
+                            needsDefault = true;
+                        }
+                    }
+                    catch { needsDefault = true; }
+                }
+
+                if (needsDefault)
                 {
                     EnsureDefaultLayoutConfig(configPath);
                 }
@@ -5252,7 +5304,7 @@ namespace Win8StartScreen
 
                 if (_configWatcher != null) _configWatcher.EnableRaisingEvents = false;
 
-                string version = "1.0";
+                string version = "1.1";
                 string bgPrimary = ThemeManager.CurrentTheme.BackgroundPrimary;
                 string bgSecondary = ThemeManager.CurrentTheme.BackgroundSecondary;
                 string accent = ThemeManager.CurrentTheme.AccentColor;

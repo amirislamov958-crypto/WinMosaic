@@ -35,15 +35,11 @@ if exist "%~dp0WinMosaic.exe" (
     )
 )
 
-if not exist "%CONFIG_DIR%\layout_config.json" (
-    if exist "%INSTALL_DIR%\default_layout.json" copy "%INSTALL_DIR%\default_layout.json" "%CONFIG_DIR%\layout_config.json" >nul
-    if exist "%~dp0default_layout.json" copy "%~dp0default_layout.json" "%CONFIG_DIR%\layout_config.json" >nul
-    if exist "%INSTALL_DIR%\Assets\default_layout.json" copy "%INSTALL_DIR%\Assets\default_layout.json" "%CONFIG_DIR%\layout_config.json" >nul
-) else (
-    for %%F in ("%CONFIG_DIR%\layout_config.json") do if %%~zF LSS 500 (
-        if exist "%INSTALL_DIR%\default_layout.json" copy /y "%INSTALL_DIR%\default_layout.json" "%CONFIG_DIR%\layout_config.json" >nul
-    )
-)
+echo Updating tile layout configuration...
+if exist "%CONFIG_DIR%\layout_config.json" copy /y "%CONFIG_DIR%\layout_config.json" "%CONFIG_DIR%\layout_config.json.bak" >nul 2>&1
+if exist "%INSTALL_DIR%\default_layout.json" copy /y "%INSTALL_DIR%\default_layout.json" "%CONFIG_DIR%\layout_config.json" >nul
+if exist "%~dp0default_layout.json" copy /y "%~dp0default_layout.json" "%CONFIG_DIR%\layout_config.json" >nul
+if exist "%INSTALL_DIR%\Assets\default_layout.json" copy /y "%INSTALL_DIR%\Assets\default_layout.json" "%CONFIG_DIR%\layout_config.json" >nul
 
 echo [3/4] Registering Windows Autostart...
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "Win8StartScreen" /f >nul 2>&1
