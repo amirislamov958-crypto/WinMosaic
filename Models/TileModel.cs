@@ -561,7 +561,7 @@ namespace Win8StartScreen.Models
         {
             get
             {
-                if (_desktopWallpaperSource == null && IsDesktopTile)
+                if (_desktopWallpaperSource == null && IsDesktopTile && IsLiveTileEnabled)
                 {
                     _desktopWallpaperSource = MainWindow.LoadDesktopWallpaperBitmap();
                 }

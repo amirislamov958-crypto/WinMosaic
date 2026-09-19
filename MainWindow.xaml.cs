@@ -730,15 +730,15 @@ namespace Win8StartScreen
 
                 if (t.Equals("Games", StringComparison.OrdinalIgnoreCase) || t.Equals("Игры", StringComparison.OrdinalIgnoreCase))
                 {
-                    string p = GetAssetPath("LiveTiles\\game_angry_birds.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                    string p = GetAssetPath("games_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
                 }
                 if (t.Equals("Store", StringComparison.OrdinalIgnoreCase) || t.Equals("Магазин", StringComparison.OrdinalIgnoreCase))
                 {
-                    string p = GetAssetPath("store_bag_transparent.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                    string p = GetAssetPath("MetroIcons\\Applications\\Windows 8 Store.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
                 }
                 if (t.Equals("Desktop", StringComparison.OrdinalIgnoreCase) || t.Equals("Рабочий стол", StringComparison.OrdinalIgnoreCase))
                 {
-                    string p = GetAssetPath("win8_desktop.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                    return "";
                 }
                 if (t.Equals("Weather", StringComparison.OrdinalIgnoreCase) || t.Equals("Погода", StringComparison.OrdinalIgnoreCase))
                 {
@@ -960,8 +960,14 @@ namespace Win8StartScreen
                             tileModel.BackgroundBrush = new SolidColorBrush(Color.FromRgb(0, 120, 215));
                         }
 
+                        if (!isLiveTileEnabledConfig)
+                        {
+                            tileModel.LiveText = string.Empty;
+                            tileModel.IsLiveTileEnabled = false;
+                            tileModel.LiveTemplate = string.Empty;
+                        }
                         // Mail ВСЕГДА строго статична: никакого живого текста и никакого переворота
-                        if (title.Equals("Mail", StringComparison.OrdinalIgnoreCase) || title.Equals("Почта", StringComparison.OrdinalIgnoreCase))
+                        else if (title.Equals("Mail", StringComparison.OrdinalIgnoreCase) || title.Equals("Почта", StringComparison.OrdinalIgnoreCase))
                         {
                             tileModel.LiveText = string.Empty;
                             tileModel.IsLiveTileEnabled = false;
@@ -1047,20 +1053,28 @@ namespace Win8StartScreen
 
                         if (tileModel.IsDesktopTile)
                         {
-                            string realWp = ResolveCurrentDesktopWallpaper();
-                            if (!string.IsNullOrEmpty(realWp) && System.IO.File.Exists(realWp))
+                            if (isLiveTileEnabledConfig)
                             {
-                                tileModel.IconImagePath = realWp;
-                                var bmp = LoadDesktopWallpaperBitmap();
-                                if (bmp != null)
+                                string realWp = ResolveCurrentDesktopWallpaper();
+                                if (!string.IsNullOrEmpty(realWp) && System.IO.File.Exists(realWp))
                                 {
-                                    tileModel.DesktopWallpaperSource = bmp;
+                                    tileModel.IconImagePath = realWp;
+                                    var bmp = LoadDesktopWallpaperBitmap();
+                                    if (bmp != null)
+                                    {
+                                        tileModel.DesktopWallpaperSource = bmp;
+                                    }
+                                }
+                                if (tileModel.DesktopWallpaperSource == null && (string.IsNullOrEmpty(tileModel.IconImagePath) || !System.IO.File.Exists(tileModel.IconImagePath)))
+                                {
+                                    string defaultDesk = GetAssetPath("win8_desktop.png");
+                                    if (System.IO.File.Exists(defaultDesk)) tileModel.IconImagePath = defaultDesk;
                                 }
                             }
-                            if (tileModel.DesktopWallpaperSource == null && (string.IsNullOrEmpty(tileModel.IconImagePath) || !System.IO.File.Exists(tileModel.IconImagePath)))
+                            else
                             {
-                                string defaultDesk = GetAssetPath("win8_desktop.png");
-                                if (System.IO.File.Exists(defaultDesk)) tileModel.IconImagePath = defaultDesk;
+                                tileModel.DesktopWallpaperSource = null;
+                                tileModel.IconImagePath = string.Empty;
                             }
                         }
 
@@ -2303,7 +2317,7 @@ namespace Win8StartScreen
             // Принудительно запускаем переворот на живых плитках для визуальной проверки
             foreach (var tile in StartTilesCanvas.Children.OfType<LiveTileControl>())
             {
-                if (tile.DataContext is Models.TileModel m && 
+                if (tile.DataContext is Models.TileModel m && m.IsLiveTileEnabled &&
                     (m.Title == "Sports" || m.Title == "Спорт" || 
                      m.Title == "News" || m.Title == "Новости" || 
                      m.Title == "Money" || m.Title == "Финансы" || 

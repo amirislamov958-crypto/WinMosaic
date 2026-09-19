@@ -78,9 +78,13 @@
                             <Style TargetType="Image">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsDesktopTile}" Value="True">
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsDesktopTile}" Value="True"/>
+                                            <Condition Binding="{Binding IsLiveTileEnabled}" Value="True"/>
+                                        </MultiDataTrigger.Conditions>
                                         <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
+                                    </MultiDataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Image.Style>
