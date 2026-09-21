@@ -173,8 +173,8 @@ namespace Win8StartScreen
         private int _gameSlideIndex = 0;
         private static readonly (string IconFile, string Title, string Subtitle)[] _gameSlideItems = new[]
         {
-            ("game_angry_birds.png", "Angry Birds", "Xbox Live"),
             ("game_fruit_ninja.png", "Fruit Ninja", "Xbox Live"),
+            ("game_angry_birds.png", "Angry Birds", "Xbox Live"),
             ("game_jetpack_joyride.jpg", "Jetpack Joyride", "Xbox Live"),
             ("game_asphalt_8.png", "Asphalt 8", "Gameloft"),
             ("game_minion.png", "Minion Rush", "Gameloft")

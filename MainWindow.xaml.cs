@@ -1156,8 +1156,8 @@ namespace Win8StartScreen
                         {
                             tileModel.Title = "Games";
                             tileModel.LiveTemplate = "Games";
-                            tileModel.GameIcon = GetAssetPath("LiveTiles\\game_angry_birds.png");
-                            tileModel.GameTitle = "Angry Birds";
+                            tileModel.GameIcon = GetAssetPath("LiveTiles\\game_fruit_ninja.png");
+                            tileModel.GameTitle = "Fruit Ninja";
                             tileModel.GameSubtitle = "Xbox Live";
                             tileModel.IsLiveTileEnabled = true;
                         }
