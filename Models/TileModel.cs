@@ -630,7 +630,7 @@ namespace Win8StartScreen.Models
         {
             get
             {
-                if (_desktopWallpaperSource == null && IsDesktopTile)
+                if (_desktopWallpaperSource == null)
                 {
                     _desktopWallpaperSource = MainWindow.LoadDesktopWallpaperBitmap();
                 }
@@ -649,8 +649,14 @@ namespace Win8StartScreen.Models
         {
             get
             {
-                if (IconImageSource != null) return IconImageSource;
-                return DesktopWallpaperSource;
+                if (_desktopWallpaperSource != null) return _desktopWallpaperSource;
+                var wp = MainWindow.LoadDesktopWallpaperBitmap();
+                if (wp != null)
+                {
+                    _desktopWallpaperSource = wp;
+                    return _desktopWallpaperSource;
+                }
+                return IconImageSource;
             }
         }
 

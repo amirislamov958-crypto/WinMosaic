@@ -696,7 +696,19 @@ namespace Win8StartScreen
 
                 string t = title.Trim();
 
-                // 1. If user configured an icon (custom PNG, JPG, ICO, etc.), ALWAYS prioritize it!
+                // 1. Desktop tiles ALWAYS resolve to the active Windows desktop wallpaper
+                if (t.Equals("Desktop", StringComparison.OrdinalIgnoreCase) || 
+                    t.Equals("Рабочий стол", StringComparison.OrdinalIgnoreCase) ||
+                    t.Equals("Мой компьютер", StringComparison.OrdinalIgnoreCase) ||
+                    t.Equals("Этот компьютер", StringComparison.OrdinalIgnoreCase) ||
+                    t.Equals("Компьютер", StringComparison.OrdinalIgnoreCase))
+                {
+                    string wp = ResolveCurrentDesktopWallpaper();
+                    if (!string.IsNullOrEmpty(wp) && System.IO.File.Exists(wp)) return System.IO.Path.GetFullPath(wp);
+                    return "";
+                }
+
+                // 2. If user configured an icon (custom PNG, JPG, ICO, etc.), ALWAYS prioritize it!
                 if (!string.IsNullOrEmpty(configuredIcon) && System.IO.File.Exists(configuredIcon))
                 {
                     return System.IO.Path.GetFullPath(configuredIcon);
@@ -720,16 +732,6 @@ namespace Win8StartScreen
                         string fnLive = GetAssetPath("LiveTiles\\" + fn);
                         if (System.IO.File.Exists(fnLive)) return System.IO.Path.GetFullPath(fnLive);
                     }
-                }
-
-                // 2. Desktop tiles never use a standalone icon if no custom image was set (uses desktop wallpaper edge-to-edge)
-                if (t.Equals("Desktop", StringComparison.OrdinalIgnoreCase) || 
-                    t.Equals("Рабочий стол", StringComparison.OrdinalIgnoreCase) ||
-                    t.Equals("Мой компьютер", StringComparison.OrdinalIgnoreCase) ||
-                    t.Equals("Этот компьютер", StringComparison.OrdinalIgnoreCase) ||
-                    t.Equals("Компьютер", StringComparison.OrdinalIgnoreCase))
-                {
-                    return "";
                 }
 
                 // 3. Fallbacks for system tiles if no configured icon
@@ -1122,23 +1124,20 @@ namespace Win8StartScreen
 
                         if (tileModel.IsDesktopTile)
                         {
-                            if (string.IsNullOrEmpty(tileModel.IconImagePath) || !System.IO.File.Exists(tileModel.IconImagePath))
+                            string realWp = ResolveCurrentDesktopWallpaper();
+                            var bmp = LoadDesktopWallpaperBitmap();
+                            if (bmp != null)
                             {
-                                string realWp = ResolveCurrentDesktopWallpaper();
-                                if (!string.IsNullOrEmpty(realWp) && System.IO.File.Exists(realWp))
-                                {
-                                    tileModel.IconImagePath = realWp;
-                                    var bmp = LoadDesktopWallpaperBitmap();
-                                    if (bmp != null)
-                                    {
-                                        tileModel.DesktopWallpaperSource = bmp;
-                                    }
-                                }
-                                else
-                                {
-                                    string defaultDesk = GetAssetPath("win8_desktop.png");
-                                    if (System.IO.File.Exists(defaultDesk)) tileModel.IconImagePath = defaultDesk;
-                                }
+                                tileModel.DesktopWallpaperSource = bmp;
+                            }
+                            if (!string.IsNullOrEmpty(realWp) && System.IO.File.Exists(realWp))
+                            {
+                                tileModel.IconImagePath = realWp;
+                            }
+                            else
+                            {
+                                string defaultDesk = GetAssetPath("win8_desktop.png");
+                                if (System.IO.File.Exists(defaultDesk)) tileModel.IconImagePath = defaultDesk;
                             }
                         }
 
