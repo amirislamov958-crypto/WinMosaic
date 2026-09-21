@@ -666,7 +666,9 @@ namespace Win8StartScreen
                     System.IO.Path.Combine(baseDir, "default_layout.json"),
                     System.IO.Path.Combine(baseDir, "Assets", "default_layout.json"),
                     System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "WinMosaic", "default_layout.json"),
-                    System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "WinMosaic", "Assets", "default_layout.json")
+                    System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "WinMosaic", "Assets", "default_layout.json"),
+                    @"D:\Users\amir_\.gemini\antigravity\scratch\Win8StartScreen\default_layout.json",
+                    @"D:\Users\amir_\.gemini\antigravity\scratch\Win8StartScreen\Assets\default_layout.json"
                 };
 
                 foreach (var c in candidates)
@@ -685,56 +687,29 @@ namespace Win8StartScreen
             }
         }
 
-        public static string ResolveTileIconPath(string title, string configuredIcon, string iconVector)
+        public static bool IsDesktopTitle(string t)
+        {
+            if (string.IsNullOrEmpty(t)) return false;
+            return t.Equals("Desktop", StringComparison.OrdinalIgnoreCase) || 
+                   t.Equals("Рабочий стол", StringComparison.OrdinalIgnoreCase) ||
+                   t.Equals("Мой компьютер", StringComparison.OrdinalIgnoreCase) ||
+                   t.Equals("Этот компьютер", StringComparison.OrdinalIgnoreCase) ||
+                   t.Equals("Компьютер", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static string ResolveDefaultTileIcon(string title)
         {
             try
             {
-                if (string.IsNullOrEmpty(configuredIcon) && string.IsNullOrEmpty(iconVector))
-                {
-                    return "";
-                }
-
-                string t = title.Trim();
-
-                // 1. Desktop tiles ALWAYS resolve to the active Windows desktop wallpaper
-                if (t.Equals("Desktop", StringComparison.OrdinalIgnoreCase) || 
-                    t.Equals("Рабочий стол", StringComparison.OrdinalIgnoreCase) ||
-                    t.Equals("Мой компьютер", StringComparison.OrdinalIgnoreCase) ||
-                    t.Equals("Этот компьютер", StringComparison.OrdinalIgnoreCase) ||
-                    t.Equals("Компьютер", StringComparison.OrdinalIgnoreCase))
+                string t = (title ?? "").Trim();
+                if (IsDesktopTitle(t))
                 {
                     string wp = ResolveCurrentDesktopWallpaper();
                     if (!string.IsNullOrEmpty(wp) && System.IO.File.Exists(wp)) return System.IO.Path.GetFullPath(wp);
+                    string defaultDesk = GetAssetPath("win8_desktop.png");
+                    if (System.IO.File.Exists(defaultDesk)) return System.IO.Path.GetFullPath(defaultDesk);
                     return "";
                 }
-
-                // 2. If user configured an icon (custom PNG, JPG, ICO, etc.), ALWAYS prioritize it!
-                if (!string.IsNullOrEmpty(configuredIcon) && System.IO.File.Exists(configuredIcon))
-                {
-                    return System.IO.Path.GetFullPath(configuredIcon);
-                }
-
-                if (!string.IsNullOrEmpty(configuredIcon))
-                {
-                    string cleaned = configuredIcon.Replace('/', '\\');
-                    if (cleaned.StartsWith("Assets\\", StringComparison.OrdinalIgnoreCase))
-                    {
-                        cleaned = cleaned.Substring(7);
-                    }
-                    string assetP = GetAssetPath(cleaned);
-                    if (System.IO.File.Exists(assetP)) return System.IO.Path.GetFullPath(assetP);
-
-                    string fn = System.IO.Path.GetFileName(configuredIcon);
-                    if (!string.IsNullOrEmpty(fn))
-                    {
-                        string fnAsset = GetAssetPath(fn);
-                        if (System.IO.File.Exists(fnAsset)) return System.IO.Path.GetFullPath(fnAsset);
-                        string fnLive = GetAssetPath("LiveTiles\\" + fn);
-                        if (System.IO.File.Exists(fnLive)) return System.IO.Path.GetFullPath(fnLive);
-                    }
-                }
-
-                // 3. Fallbacks for system tiles if no configured icon
                 if (t.Equals("Mail", StringComparison.OrdinalIgnoreCase) || t.Equals("Почта", StringComparison.OrdinalIgnoreCase))
                 {
                     string p = GetAssetPath("mail_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
@@ -745,7 +720,8 @@ namespace Win8StartScreen
                 }
                 if (t.Equals("Games", StringComparison.OrdinalIgnoreCase) || t.Equals("Игры", StringComparison.OrdinalIgnoreCase))
                 {
-                    string p = GetAssetPath("games_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                    string p = GetAssetPath("LiveTiles\\game_fruit_ninja.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                    p = GetAssetPath("games_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
                 }
                 if (t.Equals("Money", StringComparison.OrdinalIgnoreCase) || t.Equals("Финансы", StringComparison.OrdinalIgnoreCase))
                 {
@@ -769,11 +745,31 @@ namespace Win8StartScreen
                     string p = GetAssetPath("ie_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
                     p = GetAssetPath("MetroIcons\\Web Browsers\\Internet Explorer 10.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
                 }
+                if (t.Equals("Camera", StringComparison.OrdinalIgnoreCase) || t.Equals("Камера", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("camera_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
+                if (t.Equals("Videos", StringComparison.OrdinalIgnoreCase) || t.Equals("Видео", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("video_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
+                if (t.Equals("Music", StringComparison.OrdinalIgnoreCase) || t.Equals("Музыка", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("music_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
+                if (t.Equals("Calendar", StringComparison.OrdinalIgnoreCase) || t.Equals("Календарь", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("calendar_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
+                if (t.Equals("Help + Tips", StringComparison.OrdinalIgnoreCase) || t.Equals("Справка + советы", StringComparison.OrdinalIgnoreCase) || t.Equals("Справка", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("helptips_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
                 if (t.Equals("Skype", StringComparison.OrdinalIgnoreCase))
                 {
                     string p = GetAssetPath("skype_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
                 }
-                if (t.Equals("Photos", StringComparison.OrdinalIgnoreCase) || t.Equals("Фотографии", StringComparison.OrdinalIgnoreCase))
+                if (t.Equals("Photos", StringComparison.OrdinalIgnoreCase) || t.Equals("Фотографии", StringComparison.OrdinalIgnoreCase) || t.Equals("Фото", StringComparison.OrdinalIgnoreCase))
                 {
                     string p = GetAssetPath("photos_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
                 }
@@ -801,7 +797,7 @@ namespace Win8StartScreen
                 {
                     string p = GetAssetPath("health_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
                 }
-                if (t.Equals("Food & Drink", StringComparison.OrdinalIgnoreCase) || t.Equals("Кулинария", StringComparison.OrdinalIgnoreCase))
+                if (t.Equals("Food & Drink", StringComparison.OrdinalIgnoreCase) || t.Equals("Кулинария", StringComparison.OrdinalIgnoreCase) || t.Equals("Еда", StringComparison.OrdinalIgnoreCase))
                 {
                     string p = GetAssetPath("food_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
                 }
@@ -812,6 +808,59 @@ namespace Win8StartScreen
 
                 string metro = MetroIconResolver.ResolveIconPath(t);
                 if (!string.IsNullOrEmpty(metro) && System.IO.File.Exists(metro)) return System.IO.Path.GetFullPath(metro);
+            }
+            catch { }
+            return "";
+        }
+
+        public static string ResolveTileIconPath(string title, string configuredIcon, string iconVector)
+        {
+            try
+            {
+                string t = (title ?? "").Trim();
+
+                // 1. Desktop tiles ALWAYS resolve to the active Windows desktop wallpaper
+                if (IsDesktopTitle(t))
+                {
+                    string wp = ResolveCurrentDesktopWallpaper();
+                    if (!string.IsNullOrEmpty(wp) && System.IO.File.Exists(wp)) return System.IO.Path.GetFullPath(wp);
+                    string defaultDesk = GetAssetPath("win8_desktop.png");
+                    if (System.IO.File.Exists(defaultDesk)) return System.IO.Path.GetFullPath(defaultDesk);
+                    return "";
+                }
+
+                // 2. If user configured an icon (custom PNG, JPG, ICO, etc.), ALWAYS prioritize it if exists!
+                if (!string.IsNullOrEmpty(configuredIcon) && System.IO.File.Exists(configuredIcon))
+                {
+                    return System.IO.Path.GetFullPath(configuredIcon);
+                }
+
+                if (!string.IsNullOrEmpty(configuredIcon))
+                {
+                    string cleaned = configuredIcon.Replace('/', '\\');
+                    if (cleaned.StartsWith("Assets\\", StringComparison.OrdinalIgnoreCase))
+                    {
+                        cleaned = cleaned.Substring(7);
+                    }
+                    string assetP = GetAssetPath(cleaned);
+                    if (System.IO.File.Exists(assetP)) return System.IO.Path.GetFullPath(assetP);
+
+                    string fn = System.IO.Path.GetFileName(configuredIcon);
+                    if (!string.IsNullOrEmpty(fn))
+                    {
+                        string fnAsset = GetAssetPath(fn);
+                        if (System.IO.File.Exists(fnAsset)) return System.IO.Path.GetFullPath(fnAsset);
+                        string fnLive = GetAssetPath("LiveTiles\\" + fn);
+                        if (System.IO.File.Exists(fnLive)) return System.IO.Path.GetFullPath(fnLive);
+                    }
+                }
+
+                // 3. Fallbacks for system tiles (whether configuredIcon was empty or invalid/not found!)
+                string def = ResolveDefaultTileIcon(t);
+                if (!string.IsNullOrEmpty(def) && System.IO.File.Exists(def))
+                {
+                    return System.IO.Path.GetFullPath(def);
+                }
 
                 if (!string.IsNullOrEmpty(configuredIcon))
                 {
@@ -4270,7 +4319,8 @@ namespace Win8StartScreen
 
         private void ResetTileIcon_Click(object sender, RoutedEventArgs e)
         {
-            _addTileCustomIconPath = string.Empty;
+            string t = AddTileTitleInput?.Text?.Trim() ?? "";
+            _addTileCustomIconPath = !string.IsNullOrEmpty(t) ? ResolveDefaultTileIcon(t) : string.Empty;
             _addTileIconSize = 64.0;
             _addTileIconStretch = "Uniform";
             if (AddTileIconSizeSlider != null) AddTileIconSizeSlider.Value = 64;
@@ -4673,13 +4723,16 @@ namespace Win8StartScreen
         private void StudioResetIcon_Click(object sender, RoutedEventArgs e)
         {
             if (_studioSelectedTile == null) return;
-            _studioSelectedTile.IconImagePath = string.Empty;
+            string defaultIcon = ResolveDefaultTileIcon(_studioSelectedTile.Title);
+            _studioSelectedTile.IconImagePath = defaultIcon;
+            _studioSelectedTile.IconVectorPath = string.Empty;
+            _studioSelectedTile.IconGlyph = string.Empty;
             _studioSelectedTile.IconSize = TileModel.GetDefaultIconSize(_studioSelectedTile.Size);
             _studioSelectedTile.IconStretch = "Uniform";
             if (StudioIconSizeSlider != null) StudioIconSizeSlider.Value = _studioSelectedTile.IconSize;
             SaveLayoutConfig();
             UpdateStudioSelectedTileUI();
-            ShowStudioStatus("Значок плитки сброшен.");
+            ShowStudioStatus($"Значок плитки «{_studioSelectedTile.Title}» восстановлен по умолчанию.");
         }
 
         private void StudioIconSizeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
