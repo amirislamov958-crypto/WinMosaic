@@ -1322,9 +1322,7 @@ namespace Win8StartScreen
                     !t.IsDragging &&
                     t.DataContext is TileModel m && 
                     m.IsLiveTileEnabled && 
-                    !m.Title.Equals("Mail", StringComparison.OrdinalIgnoreCase) &&
-                    !m.Title.Equals("Почта", StringComparison.OrdinalIgnoreCase) &&
-                    (m.IsPhotoBannerTemplate || m.IsFinanceTemplate || m.IsWeatherTemplate || m.IsStoreTemplate || m.IsGamesTemplate || (!string.IsNullOrEmpty(m.LiveText) && !m.LiveText.Contains("3 новых письма") && !m.LiveText.Contains("Отчет по проекту")))
+                    (m.IsPhotoBannerTemplate || m.IsFinanceTemplate || m.IsWeatherTemplate || m.IsStoreTemplate || m.IsGamesTemplate || !string.IsNullOrEmpty(m.LiveText))
                 ).ToList();
 
                 if (eligible.Count == 0)

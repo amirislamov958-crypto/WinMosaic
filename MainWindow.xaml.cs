@@ -696,18 +696,7 @@ namespace Win8StartScreen
 
                 string t = title.Trim();
 
-                // Authentic Windows 8.1 system tiles with vectors render crisp SVG vector paths
-                bool prefersVector = !string.IsNullOrEmpty(iconVector) &&
-                                     !t.Equals("Games", StringComparison.OrdinalIgnoreCase) &&
-                                     !t.Equals("Игры", StringComparison.OrdinalIgnoreCase) &&
-                                     !t.Equals("Desktop", StringComparison.OrdinalIgnoreCase) &&
-                                     !t.Equals("Рабочий стол", StringComparison.OrdinalIgnoreCase);
-
-                if (prefersVector)
-                {
-                    return "";
-                }
-
+                // 1. If user configured an icon (custom PNG, JPG, ICO, etc.), ALWAYS prioritize it!
                 if (!string.IsNullOrEmpty(configuredIcon) && System.IO.File.Exists(configuredIcon))
                 {
                     return System.IO.Path.GetFullPath(configuredIcon);
@@ -733,6 +722,25 @@ namespace Win8StartScreen
                     }
                 }
 
+                // 2. Desktop tiles never use a standalone icon if no custom image was set (uses desktop wallpaper edge-to-edge)
+                if (t.Equals("Desktop", StringComparison.OrdinalIgnoreCase) || 
+                    t.Equals("Рабочий стол", StringComparison.OrdinalIgnoreCase) ||
+                    t.Equals("Мой компьютер", StringComparison.OrdinalIgnoreCase) ||
+                    t.Equals("Этот компьютер", StringComparison.OrdinalIgnoreCase) ||
+                    t.Equals("Компьютер", StringComparison.OrdinalIgnoreCase))
+                {
+                    return "";
+                }
+
+                // 3. Fallbacks for system tiles if no configured icon
+                if (t.Equals("Mail", StringComparison.OrdinalIgnoreCase) || t.Equals("Почта", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("mail_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
+                if (t.Equals("People", StringComparison.OrdinalIgnoreCase) || t.Equals("Люди", StringComparison.OrdinalIgnoreCase) || t.Equals("Контакты", StringComparison.OrdinalIgnoreCase))
+                {
+                    string p = GetAssetPath("people_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                }
                 if (t.Equals("Games", StringComparison.OrdinalIgnoreCase) || t.Equals("Игры", StringComparison.OrdinalIgnoreCase))
                 {
                     string p = GetAssetPath("games_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
@@ -749,10 +757,6 @@ namespace Win8StartScreen
                 {
                     string p = GetAssetPath("store_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
                     p = GetAssetPath("MetroIcons\\Applications\\Windows 8 Store.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
-                }
-                if (t.Equals("Desktop", StringComparison.OrdinalIgnoreCase) || t.Equals("Рабочий стол", StringComparison.OrdinalIgnoreCase))
-                {
-                    return "";
                 }
                 if (t.Equals("Weather", StringComparison.OrdinalIgnoreCase) || t.Equals("Погода", StringComparison.OrdinalIgnoreCase))
                 {
@@ -1017,14 +1021,22 @@ namespace Win8StartScreen
                             tileModel.BackgroundBrush = new SolidColorBrush(Color.FromRgb(0, 120, 215));
                         }
 
-                        if (!isLiveTileEnabledConfig)
-                        {
-                            tileModel.LiveText = string.Empty;
-                            tileModel.IsLiveTileEnabled = false;
-                            tileModel.LiveTemplate = string.Empty;
-                        }
-                        // Mail ВСЕГДА строго статична: никакого живого текста и никакого переворота
-                        else if (title.Equals("Mail", StringComparison.OrdinalIgnoreCase) || title.Equals("Почта", StringComparison.OrdinalIgnoreCase))
+                        bool isRecognizedLiveTile = title.Equals("Sports", StringComparison.OrdinalIgnoreCase) ||
+                                                    title.Equals("Спорт", StringComparison.OrdinalIgnoreCase) ||
+                                                    title.Equals("News", StringComparison.OrdinalIgnoreCase) ||
+                                                    title.Equals("Новости", StringComparison.OrdinalIgnoreCase) ||
+                                                    title.Equals("Money", StringComparison.OrdinalIgnoreCase) ||
+                                                    title.Equals("Финансы", StringComparison.OrdinalIgnoreCase) ||
+                                                    title.Equals("Weather", StringComparison.OrdinalIgnoreCase) ||
+                                                    title.Equals("Погода", StringComparison.OrdinalIgnoreCase) ||
+                                                    title.Equals("Store", StringComparison.OrdinalIgnoreCase) ||
+                                                    title.Equals("Магазин", StringComparison.OrdinalIgnoreCase) ||
+                                                    title.Equals("Games", StringComparison.OrdinalIgnoreCase) ||
+                                                    title.Equals("Игры", StringComparison.OrdinalIgnoreCase) ||
+                                                    title.Equals("Food & Drink", StringComparison.OrdinalIgnoreCase) ||
+                                                    title.Equals("Кулинария", StringComparison.OrdinalIgnoreCase);
+
+                        if (!isLiveTileEnabledConfig && !isRecognizedLiveTile)
                         {
                             tileModel.LiveText = string.Empty;
                             tileModel.IsLiveTileEnabled = false;

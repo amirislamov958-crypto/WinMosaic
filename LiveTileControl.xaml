@@ -69,29 +69,36 @@
                         <TranslateTransform x:Name="FrontTranslate" Y="0"/>
                     </Grid.RenderTransform>
                     
-                    <!-- Full-bleed background wallpaper for Desktop tile -->
-                    <Image Source="{Binding DesktopWallpaperSource}"
+                    <!-- Full-bleed background wallpaper/image for Desktop tile (100% edge-to-edge, zero gaps) -->
+                    <Image Source="{Binding DesktopDisplaySource}"
                            Stretch="UniformToFill" 
                            RenderOptions.BitmapScalingMode="HighQuality"
-                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                           HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                           Margin="0">
                         <Image.Style>
                             <Style TargetType="Image">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
-                                    <MultiDataTrigger>
-                                        <MultiDataTrigger.Conditions>
-                                            <Condition Binding="{Binding IsDesktopTile}" Value="True"/>
-                                            <Condition Binding="{Binding HasIconImage}" Value="False"/>
-                                        </MultiDataTrigger.Conditions>
+                                    <DataTrigger Binding="{Binding IsDesktopTile}" Value="True">
                                         <Setter Property="Visibility" Value="Visible"/>
-                                    </MultiDataTrigger>
+                                    </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Image.Style>
                     </Image>
 
-                    <!-- Icon / Vector / Glyph -->
+                    <!-- Icon / Vector / Glyph (Hidden for Desktop tile since it has full-bleed wallpaper) -->
                     <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,8">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsDesktopTile}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
                         <!-- Image Logo (Authentic Metro PNG with full scaling and offset) -->
                         <Image Source="{Binding IconImageSource}" 
                                Width="{Binding EffectiveIconWidth}" 
@@ -165,7 +172,11 @@
                     <TextBlock Text="{Binding Title}" FontSize="11" Foreground="White"
                                Margin="8,0,8,6" VerticalAlignment="Bottom"
                                TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"
-                               MaxHeight="18"/>
+                               MaxHeight="18">
+                        <TextBlock.Effect>
+                            <DropShadowEffect BlurRadius="4" ShadowDepth="1" Direction="315" Color="#D0000000" Opacity="0.9"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
                 </Grid>
 
                 <!-- BACK LIVE CONTENT -->

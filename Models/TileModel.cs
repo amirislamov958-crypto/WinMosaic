@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
@@ -134,6 +135,8 @@ namespace Win8StartScreen.Models
                 _title = value; 
                 OnPropertyChanged(); 
                 OnPropertyChanged(nameof(DisplayTitle)); 
+                OnPropertyChanged(nameof(IsDesktopTile));
+                OnPropertyChanged(nameof(DesktopDisplaySource));
             }
         }
 
@@ -375,6 +378,8 @@ namespace Win8StartScreen.Models
                 OnPropertyChanged(nameof(EffectiveIconWidth));
                 OnPropertyChanged(nameof(EffectiveIconHeight));
                 OnPropertyChanged(nameof(DisplayTitle));
+                OnPropertyChanged(nameof(IsDesktopTile));
+                OnPropertyChanged(nameof(DesktopDisplaySource));
             }
         }
 
@@ -404,13 +409,32 @@ namespace Win8StartScreen.Models
 
                     if (System.IO.File.Exists(path))
                     {
-                        var bmp = new BitmapImage();
-                        bmp.BeginInit();
-                        bmp.CacheOption = BitmapCacheOption.OnLoad;
-                        bmp.UriSource = new Uri(System.IO.Path.GetFullPath(path), UriKind.Absolute);
-                        bmp.EndInit();
-                        bmp.Freeze();
-                        return bmp;
+                        if (path.EndsWith(".ico", StringComparison.OrdinalIgnoreCase))
+                        {
+                            using var fs = new System.IO.FileStream(path, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.ReadWrite);
+                            var decoder = new System.Windows.Media.Imaging.IconBitmapDecoder(fs, System.Windows.Media.Imaging.BitmapCreateOptions.None, System.Windows.Media.Imaging.BitmapCacheOption.OnLoad);
+                            var frame = decoder.Frames.OrderByDescending(f => f.PixelWidth * f.PixelHeight).FirstOrDefault();
+                            if (frame != null) return frame;
+                        }
+
+                        byte[] bytes;
+                        using (var fs = new System.IO.FileStream(path, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.ReadWrite))
+                        using (var ms = new System.IO.MemoryStream())
+                        {
+                            fs.CopyTo(ms);
+                            bytes = ms.ToArray();
+                        }
+
+                        if (bytes.Length > 0)
+                        {
+                            var bmp = new BitmapImage();
+                            bmp.BeginInit();
+                            bmp.CacheOption = BitmapCacheOption.OnLoad;
+                            bmp.StreamSource = new System.IO.MemoryStream(bytes);
+                            bmp.EndInit();
+                            bmp.Freeze();
+                            return bmp;
+                        }
                     }
                 }
                 catch { }
@@ -616,6 +640,17 @@ namespace Win8StartScreen.Models
             {
                 _desktopWallpaperSource = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(DesktopDisplaySource));
+            }
+        }
+
+        [JsonIgnore]
+        public ImageSource? DesktopDisplaySource
+        {
+            get
+            {
+                if (IconImageSource != null) return IconImageSource;
+                return DesktopWallpaperSource;
             }
         }
 
@@ -654,12 +689,25 @@ namespace Win8StartScreen.Models
         public bool IsDesktopTile =>
             Title.Equals("Desktop", StringComparison.OrdinalIgnoreCase) || 
             Title.Equals("Рабочий стол", StringComparison.OrdinalIgnoreCase) ||
-            (!string.IsNullOrEmpty(ExecutablePath) && ExecutablePath.Equals("explorer.exe", StringComparison.OrdinalIgnoreCase) && (Title.IndexOf("Desktop", StringComparison.OrdinalIgnoreCase) >= 0 || Title.IndexOf("Рабочий", StringComparison.OrdinalIgnoreCase) >= 0));
+            Title.Equals("Мой компьютер", StringComparison.OrdinalIgnoreCase) ||
+            Title.Equals("Этот компьютер", StringComparison.OrdinalIgnoreCase) ||
+            Title.Equals("Компьютер", StringComparison.OrdinalIgnoreCase) ||
+            (!string.IsNullOrEmpty(IconImagePath) && IconImagePath.IndexOf("TranscodedWallpaper", StringComparison.OrdinalIgnoreCase) >= 0) ||
+            (!string.IsNullOrEmpty(ExecutablePath) && ExecutablePath.Equals("explorer.exe", StringComparison.OrdinalIgnoreCase) && 
+             (Title.IndexOf("Desktop", StringComparison.OrdinalIgnoreCase) >= 0 || 
+              Title.IndexOf("Рабочий", StringComparison.OrdinalIgnoreCase) >= 0 || 
+              Title.IndexOf("Компьютер", StringComparison.OrdinalIgnoreCase) >= 0));
 
         public string ExecutablePath
         {
             get => _executablePath;
-            set { _executablePath = value; OnPropertyChanged(); }
+            set 
+            { 
+                _executablePath = value; 
+                OnPropertyChanged(); 
+                OnPropertyChanged(nameof(IsDesktopTile));
+                OnPropertyChanged(nameof(DesktopDisplaySource));
+            }
         }
 
         public bool IsLiveTileEnabled
