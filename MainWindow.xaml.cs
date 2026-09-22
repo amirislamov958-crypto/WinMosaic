@@ -81,6 +81,7 @@ namespace Win8StartScreen
         private bool _addTileInitialized = false;
         private bool _isUpdatingColorHex = false;
         private bool _isEyedropperActive = false;
+        private bool _eyedropperArmed = false;
         private DispatcherTimer? _eyedropperTimer;
         private Color _eyedropperSampledColor;
         private bool _isSemanticZoomedOut = false;
@@ -720,7 +721,7 @@ namespace Win8StartScreen
                 }
                 if (t.Equals("Games", StringComparison.OrdinalIgnoreCase) || t.Equals("Игры", StringComparison.OrdinalIgnoreCase))
                 {
-                    string p = GetAssetPath("LiveTiles\\game_fruit_ninja.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
+                    string p = GetAssetPath("LiveTiles\\game_minion.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
                     p = GetAssetPath("games_icon.png"); if (System.IO.File.Exists(p)) return System.IO.Path.GetFullPath(p);
                 }
                 if (t.Equals("Money", StringComparison.OrdinalIgnoreCase) || t.Equals("Финансы", StringComparison.OrdinalIgnoreCase))
@@ -1156,9 +1157,9 @@ namespace Win8StartScreen
                         {
                             tileModel.Title = "Games";
                             tileModel.LiveTemplate = "Games";
-                            tileModel.GameIcon = GetAssetPath("LiveTiles\\game_fruit_ninja.png");
-                            tileModel.GameTitle = "Fruit Ninja";
-                            tileModel.GameSubtitle = "Xbox Live";
+                            tileModel.GameIcon = GetAssetPath("LiveTiles\\game_minion.png");
+                            tileModel.GameTitle = "Minion Rush";
+                            tileModel.GameSubtitle = "Gameloft";
                             tileModel.IsLiveTileEnabled = true;
                         }
                         else if (title.Equals("Food & Drink", StringComparison.OrdinalIgnoreCase) || title.Equals("Кулинария", StringComparison.OrdinalIgnoreCase))
@@ -3792,7 +3793,12 @@ namespace Win8StartScreen
         private void StartEyedropper()
         {
             _isEyedropperActive = true;
-            if (EyedropperHud != null) EyedropperHud.Visibility = Visibility.Visible;
+            _eyedropperArmed = false;
+            if (EyedropperHud != null)
+            {
+                EyedropperHud.IsHitTestVisible = false;
+                EyedropperHud.Visibility = Visibility.Visible;
+            }
             Mouse.OverrideCursor = Cursors.Cross;
 
             if (_eyedropperTimer == null)
@@ -3811,6 +3817,7 @@ namespace Win8StartScreen
             if (!_isEyedropperActive) return;
 
             _isEyedropperActive = false;
+            _eyedropperArmed = false;
             _eyedropperTimer?.Stop();
             if (EyedropperHud != null) EyedropperHud.Visibility = Visibility.Collapsed;
             Mouse.OverrideCursor = null;
@@ -3860,7 +3867,17 @@ namespace Win8StartScreen
                     return;
                 }
 
-                if ((GetAsyncKeyState(0x01) & 0x8000) != 0) // VK_LBUTTON pressed
+                bool isMouseDown = (GetAsyncKeyState(0x01) & 0x8000) != 0; // VK_LBUTTON
+                if (!_eyedropperArmed)
+                {
+                    if (!isMouseDown)
+                    {
+                        _eyedropperArmed = true;
+                    }
+                    return;
+                }
+
+                if (isMouseDown)
                 {
                     StopEyedropper(applyColor: true);
                     return;
@@ -3876,16 +3893,30 @@ namespace Win8StartScreen
                 try
                 {
                     uint pixel = GetPixel(hdc, screenX, screenY);
-                    byte r = (byte)(pixel & 0x000000FF);
-                    byte g = (byte)((pixel & 0x0000FF00) >> 8);
-                    byte b = (byte)((pixel & 0x00FF0000) >> 16);
-                    return Color.FromRgb(r, g, b);
+                    if (pixel != 0xFFFFFFFF)
+                    {
+                        byte r = (byte)(pixel & 0x000000FF);
+                        byte g = (byte)((pixel & 0x0000FF00) >> 8);
+                        byte b = (byte)((pixel & 0x00FF0000) >> 16);
+                        return Color.FromRgb(r, g, b);
+                    }
                 }
                 finally
                 {
                     ReleaseDC(IntPtr.Zero, hdc);
                 }
             }
+
+            try
+            {
+                using var bmp = new System.Drawing.Bitmap(1, 1);
+                using var g = System.Drawing.Graphics.FromImage(bmp);
+                g.CopyFromScreen(screenX, screenY, 0, 0, new System.Drawing.Size(1, 1));
+                var c = bmp.GetPixel(0, 0);
+                return Color.FromRgb(c.R, c.G, c.B);
+            }
+            catch { }
+
             return Color.FromRgb(0, 120, 215);
         }
 
