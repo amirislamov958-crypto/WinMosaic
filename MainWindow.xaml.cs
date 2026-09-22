@@ -2026,9 +2026,9 @@ namespace Win8StartScreen
             AppsScreenTranslate.X = 0;
             AppsScreenTranslate.Y = offscreenY;
 
-            // Экран Пуск видим и подготавливается к аппаратному появлению
+            // Экран Пуск подготавливается к аппаратному появлению
             StartScreenContainer.Visibility = Visibility.Visible;
-            StartScreenContainer.Opacity = 1.0;
+            StartScreenContainer.Opacity = 0.0;
             StartScreenTranslate.X = 0;
             StartScreenTranslate.Y = 0;
 
@@ -2049,13 +2049,24 @@ namespace Win8StartScreen
             ClosePersonalize();
             DeselectAllTiles();
 
-            UncloakWindow();
-
             // 1. СНАЧАЛА ПОЯВЛЯЮТСЯ ПЛИТКИ: плавная каскадная аппаратная волна (0мс -> 200мс)
             AnimateTilesEntrance();
 
-            // 2. ПОСЛЕ ПЛИТОК - ФОН: мягко и плавно проявляется фон с узорами и градиентом (100мс -> 320мс)
+            // Плавное появление плиток и интерфейса Пуск (0.0 -> 1.0) за 160мс - один аппаратный Direct3D GPU-пасс
             var easeOut = new CubicEase { EasingMode = EasingMode.EaseOut };
+            var contentFadeIn = new DoubleAnimation
+            {
+                From = 0.0,
+                To = 1.0,
+                Duration = TimeSpan.FromMilliseconds(160),
+                EasingFunction = easeOut,
+                FillBehavior = FillBehavior.HoldEnd
+            };
+            StartScreenContainer.BeginAnimation(OpacityProperty, contentFadeIn);
+
+            UncloakWindow();
+
+            // 2. ПОСЛЕ ПЛИТОК - ФОН: мягко и плавно проявляется фон с узорами и градиентом (100мс -> 320мс)
             var bgFadeIn = new DoubleAnimation
             {
                 From = 0.0,
@@ -2071,6 +2082,8 @@ namespace Win8StartScreen
                 if (_screenState == ScreenState.Opening)
                 {
                     _screenState = ScreenState.Open;
+                    StartScreenContainer.BeginAnimation(OpacityProperty, null);
+                    StartScreenContainer.Opacity = 1.0;
                     WallpaperCanvas.BeginAnimation(OpacityProperty, null);
                     WallpaperCanvas.Opacity = 1.0;
                     if (RibbonContainer != null)

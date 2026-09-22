@@ -435,13 +435,14 @@ namespace Win8StartScreen
         {
             EntranceTranslate.BeginAnimation(TranslateTransform.XProperty, null);
             BeginAnimation(OpacityProperty, null);
+            Opacity = 1.0;
 
             EntranceTranslate.X = distance;
-            Opacity = 0.0;
 
             var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
 
             // Аппаратный сверхплавный сдвиг плитки справа налево (48px -> 0px)
+            // Без анимации UserControl.Opacity, что полностью исключает выделение промежуточных текстур D3D и лаги
             var slideAnim = new DoubleAnimation
             {
                 From = distance,
@@ -452,19 +453,13 @@ namespace Win8StartScreen
                 FillBehavior = FillBehavior.HoldEnd
             };
 
-            // Плавное проявление плитки (0.0 -> 1.0)
-            var fadeAnim = new DoubleAnimation
+            slideAnim.Completed += (s, e) =>
             {
-                From = 0.0,
-                To = 1.0,
-                Duration = TimeSpan.FromMilliseconds(Math.Min(160, durationMs)),
-                BeginTime = TimeSpan.FromMilliseconds(delayMs),
-                EasingFunction = ease,
-                FillBehavior = FillBehavior.HoldEnd
+                EntranceTranslate.BeginAnimation(TranslateTransform.XProperty, null);
+                EntranceTranslate.X = 0;
             };
 
             EntranceTranslate.BeginAnimation(TranslateTransform.XProperty, slideAnim);
-            BeginAnimation(OpacityProperty, fadeAnim);
         }
 
         // =================== 3D Perspective Tilt Physics & Dragging ===================
