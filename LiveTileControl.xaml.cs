@@ -431,7 +431,7 @@ namespace Win8StartScreen
             TileSkew.AngleY = 0;
         }
 
-        public void TriggerEntranceAnimation(int delayMs = 0, double distance = 60.0, int durationMs = 280)
+        public void TriggerEntranceAnimation(int delayMs = 0, double distance = 60.0, int durationMs = 280, int? targetFps = null)
         {
             EntranceTranslate.BeginAnimation(TranslateTransform.XProperty, null);
             BeginAnimation(OpacityProperty, null);
@@ -441,8 +441,7 @@ namespace Win8StartScreen
 
             var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
 
-            // Аппаратный сверхплавный сдвиг плитки справа налево (48px -> 0px)
-            // Без анимации UserControl.Opacity, что полностью исключает выделение промежуточных текстур D3D и лаги
+            // Аппаратный сверхплавный сдвиг плитки справа налево
             var slideAnim = new DoubleAnimation
             {
                 From = distance,
@@ -452,6 +451,11 @@ namespace Win8StartScreen
                 EasingFunction = ease,
                 FillBehavior = FillBehavior.HoldEnd
             };
+
+            if (targetFps.HasValue && targetFps.Value >= 30)
+            {
+                Timeline.SetDesiredFrameRate(slideAnim, targetFps.Value);
+            }
 
             slideAnim.Completed += (s, e) =>
             {

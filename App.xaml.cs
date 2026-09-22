@@ -11,18 +11,6 @@ namespace Win8StartScreen
 {
     public partial class App : System.Windows.Application
     {
-        static App()
-        {
-            try
-            {
-                Timeline.DesiredFrameRateProperty.OverrideMetadata(
-                    typeof(Timeline),
-                    new FrameworkPropertyMetadata(144)
-                );
-            }
-            catch { }
-        }
-
         private GlobalKeyboardHook? _hook;
         private TaskbarHook? _taskbarHook;
         private MainWindow? _mainWindow;
