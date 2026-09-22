@@ -2032,9 +2032,11 @@ namespace Win8StartScreen
             AppsScreenTranslate.X = 0;
             AppsScreenTranslate.Y = offscreenY;
 
-            // Экран Пуск видим и аппаратно отрисовывается без промежуточных текстур
+            // Экран Пуск подготавливаем к плавному появлению
             StartScreenContainer.Visibility = Visibility.Visible;
-            StartScreenContainer.Opacity = 1.0;
+            StartScreenContainer.BeginAnimation(OpacityProperty, null);
+            StartScreenContainer.Opacity = 0.0;
+            StartScreenTranslate.BeginAnimation(TranslateTransform.XProperty, null);
             StartScreenTranslate.X = 0;
             StartScreenTranslate.Y = 0;
 
@@ -2055,19 +2057,37 @@ namespace Win8StartScreen
             ClosePersonalize();
             DeselectAllTiles();
 
-            // 1. СНАЧАЛА ПОЯВЛЯЮТСЯ ПЛИТКИ: сверхплавная каскадная аппаратная волна (0мс -> 180мс) на 144 FPS
+            // 1. СНАЧАЛА ПОЯВЛЯЮТСЯ ПЛИТКИ: каскадная аппаратная волна плиток со скольжением и мягким проявлением
             AnimateTilesEntrance();
+
+            var easeOut = new CubicEase { EasingMode = EasingMode.EaseOut };
+
+            var contentFadeIn = new DoubleAnimation
+            {
+                From = 0.0,
+                To = 1.0,
+                Duration = TimeSpan.FromMilliseconds(220),
+                EasingFunction = easeOut,
+                FillBehavior = FillBehavior.HoldEnd
+            };
+
+            contentFadeIn.Completed += (s, e) =>
+            {
+                StartScreenContainer.BeginAnimation(OpacityProperty, null);
+                StartScreenContainer.Opacity = 1.0;
+            };
+
+            StartScreenContainer.BeginAnimation(OpacityProperty, contentFadeIn);
 
             UncloakWindow();
 
-            // 2. ПОСЛЕ ПЛИТОК - ФОН: мягко и плавно проявляется фон с узорами и градиентом (70мс -> 270мс)
-            var easeOut = new CubicEase { EasingMode = EasingMode.EaseOut };
+            // 2. ПОСЛЕ ПЛИТОК - ФОН: мягко расцветает фон с узорами и градиентом (90мс -> 350мс)
             var bgFadeIn = new DoubleAnimation
             {
                 From = 0.0,
                 To = 1.0,
-                Duration = TimeSpan.FromMilliseconds(200),
-                BeginTime = TimeSpan.FromMilliseconds(70), // Плитки уже начали каскад, за ними мгновенно расцветает фон
+                Duration = TimeSpan.FromMilliseconds(260),
+                BeginTime = TimeSpan.FromMilliseconds(90), // Плитки уже скользят и видны, за ними плавно проявляется фон
                 EasingFunction = easeOut,
                 FillBehavior = FillBehavior.HoldEnd
             };
@@ -2119,15 +2139,21 @@ namespace Win8StartScreen
             this.Opacity = 1.0;
 
             var easeIn = new CubicEase { EasingMode = EasingMode.EaseIn };
-            var duration = TimeSpan.FromMilliseconds(110);
+            var duration = TimeSpan.FromMilliseconds(160);
 
-            // 1. Аппаратный быстрый сдвиг содержимого влево (0px -> -45px) за 110мс без лагов
-            var contentSlideOut = new DoubleAnimation(0.0, -45.0, duration)
+            // 1. Плавный аппаратный сдвиг содержимого влево (0px -> -50px)
+            var contentSlideOut = new DoubleAnimation(0.0, -50.0, duration)
             {
                 EasingFunction = easeIn
             };
 
-            // 2. Мягкое синхронное затухание фона за 110мс
+            // 2. Плавное затухание содержимого
+            var contentFadeOut = new DoubleAnimation(1.0, 0.0, TimeSpan.FromMilliseconds(140))
+            {
+                EasingFunction = easeIn
+            };
+
+            // 3. Мягкое синхронное затухание фона
             var bgFadeOut = new DoubleAnimation(1.0, 0.0, duration)
             {
                 EasingFunction = easeIn
@@ -2190,10 +2216,12 @@ namespace Win8StartScreen
             if (_activeView == ActiveView.Apps)
             {
                 AppsScreenTranslate.BeginAnimation(TranslateTransform.XProperty, contentSlideOut);
+                AppsScreenContainer.BeginAnimation(OpacityProperty, contentFadeOut);
             }
             else
             {
                 StartScreenTranslate.BeginAnimation(TranslateTransform.XProperty, contentSlideOut);
+                StartScreenContainer.BeginAnimation(OpacityProperty, contentFadeOut);
             }
 
             BackgroundLayer?.BeginAnimation(OpacityProperty, bgFadeOut);
@@ -5660,8 +5688,8 @@ namespace Win8StartScreen
             {
                 double x = Canvas.GetLeft(tile);
                 int colIndex = Math.Max(0, (int)Math.Floor(x / 160.0));
-                int delayMs = Math.Min(60, colIndex * 14);
-                tile.TriggerEntranceAnimation(delayMs, distance: 48.0, durationMs: 180);
+                int delayMs = Math.Min(90, colIndex * 22);
+                tile.TriggerEntranceAnimation(delayMs, distance: 60.0, durationMs: 280);
             }
         }
 
