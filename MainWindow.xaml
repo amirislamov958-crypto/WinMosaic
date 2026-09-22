@@ -38,6 +38,9 @@
 
         <!-- Фоновые аутентичные ленты и волны Windows 8.1 (ТОЛЬКО ДЛЯ ЭКРАНА ПУСК) -->
         <Viewbox x:Name="RibbonContainer" Stretch="Fill" IsHitTestVisible="False">
+            <Viewbox.CacheMode>
+                <BitmapCache EnableClearType="False" RenderAtScale="1.0" SnapsToDevicePixels="True"/>
+            </Viewbox.CacheMode>
             <Viewbox.RenderTransform>
                 <TranslateTransform x:Name="RibbonTranslate" X="0" Y="0"/>
             </Viewbox.RenderTransform>

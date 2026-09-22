@@ -285,7 +285,7 @@ namespace Win8StartScreen
             _hook = new GlobalKeyboardHook();
             _hook.WinKeyPressed += () =>
             {
-                Dispatcher.BeginInvoke(new Action(() =>
+                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Send, new Action(() =>
                 {
                     if (_mainWindow == null) return;
                     var screen = _mainWindow.GetActiveOrConfiguredScreen();
@@ -294,14 +294,14 @@ namespace Win8StartScreen
             };
             _hook.EscKeyPressed += () =>
             {
-                Dispatcher.BeginInvoke(new Action(() => _mainWindow?.CloseScreenAnimated()));
+                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Send, new Action(() => _mainWindow?.CloseScreenAnimated()));
             };
 
             // Инициализируем глобальный хук клика на логотип Windows (кнопку Пуск на панели задач)
             _taskbarHook = new TaskbarHook();
             _taskbarHook.StartButtonClicked += (clickedScreen) =>
             {
-                Dispatcher.BeginInvoke(new Action(() =>
+                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Send, new Action(() =>
                 {
                     if (_mainWindow == null) return;
 
