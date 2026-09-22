@@ -6570,6 +6570,7 @@ namespace Win8StartScreen
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(0, 120, 215)),
                 IconImagePath = MetroIconResolver.ResolveIconPath("Mail"),
                 IconVectorPath = "M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z",
+                IconSize = 92.857,
                 LiveText = string.Empty,
                 IsLiveTileEnabled = false
             };
@@ -6581,6 +6582,7 @@ namespace Win8StartScreen
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(104, 33, 122)),
                 IconImagePath = MetroIconResolver.ResolveIconPath("Calendar"),
                 IconVectorPath = "M19,4H18V2H16V4H8V2H6V4H5C3.89,4 3,4.89 3,6V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V6A2,2 0 0,0 19,4M19,20H5V9H19V20M19,8H5V6H19V8M7,11H12V16H7",
+                IconSize = 100,
                 LiveText = "14:00 - Встреча команды\n18:30 - Тренировка"
             };
 
@@ -6590,6 +6592,7 @@ namespace Win8StartScreen
                 Size = TileSize.Medium,
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(0, 164, 239)),
                 IconImagePath = MetroIconResolver.ResolveIconPath("Internet Explorer"),
+                IconSize = 110,
                 IconGlyph = "🌐"
             };
 
@@ -6599,6 +6602,7 @@ namespace Win8StartScreen
                 Size = TileSize.Small,
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(216, 0, 115)),
                 IconImagePath = MetroIconResolver.ResolveIconPath("Videos"),
+                IconSize = 46,
                 IconVectorPath = "M18,3H6A3,3 0 0,0 3,6V18A3,3 0 0,0 6,21H18A3,3 0 0,0 21,18V6A3,3 0 0,0 18,3M10,16V8L16,12L10,16Z"
             };
 
@@ -6608,6 +6612,7 @@ namespace Win8StartScreen
                 Size = TileSize.Small,
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(240, 150, 9)),
                 IconImagePath = MetroIconResolver.ResolveIconPath("Music"),
+                IconSize = 46,
                 IconVectorPath = "M12,3A9,9 0 0,0 3,12V19A3,3 0 0,0 6,22H8V14H5V12A7,7 0 0,1 12,5A7,7 0 0,1 19,12V14H16V22H18A3,3 0 0,0 21,19V12A9,9 0 0,0 12,3Z"
             };
 
@@ -6617,6 +6622,7 @@ namespace Win8StartScreen
                 Size = TileSize.Small,
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(51, 153, 51)),
                 IconImagePath = MetroIconResolver.ResolveIconPath("Games"),
+                IconSize = 52,
                 IconVectorPath = "M19.5,6H4.5A2.5,2.5 0 0,0 2,8.5V15.5A2.5,2.5 0 0,0 4.5,18H6.9L8.4,14.5H15.6L17.1,18H19.5A2.5,2.5 0 0,0 22,15.5V8.5A2.5,2.5 0 0,0 19.5,6M7,13H5.5V11.5H4V10H5.5V8.5H7V10H8.5V11.5H7V13M16,10A1,1 0 1,1 17,9A1,1 0 0,1 16,10M18,12A1,1 0 1,1 19,11A1,1 0 0,1 18,12M18,8A1,1 0 1,1 19,7A1,1 0 0,1 18,8M20,10A1,1 0 1,1 21,9A1,1 0 0,1 20,10Z"
             };
 
@@ -6626,6 +6632,7 @@ namespace Win8StartScreen
                 Size = TileSize.Small,
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(162, 0, 255)),
                 IconImagePath = MetroIconResolver.ResolveIconPath("Camera"),
+                IconSize = 46,
                 IconVectorPath = "M4,4H7L9,2H15L17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z"
             };
 
@@ -6635,6 +6642,7 @@ namespace Win8StartScreen
                 Size = TileSize.Large,
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(0, 168, 89)),
                 IconImagePath = MetroIconResolver.ResolveIconPath("Windows Store"),
+                IconSize = 160,
                 IconVectorPath = "M19,6H16A4,4 0 0,0 12,2A4,4 0 0,0 8,6H5A2,2 0 0,0 3,8V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V8A2,2 0 0,0 19,6M12,4A2,2 0 0,1 14,6H10A2,2 0 0,1 12,4M19,20H5V8H19V20Z",
                 LiveText = "Популярные игры и приложения доступны в Магазине Windows"
             };
@@ -6646,6 +6654,7 @@ namespace Win8StartScreen
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(92, 45, 145)),
                 IconImagePath = MetroIconResolver.ResolveIconPath("Sports"),
                 IconVectorPath = "M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0 0 11 15.9V19H7v2h10v-2h-4v-3.1a5.01 5.01 0 0 0 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z",
+                IconSize = 100,
                 LiveText = "Роман Широков: Быть",
                 LiveTemplate = "PhotoBanner",
                 LiveImagePath = GetAssetPath("LiveTiles\\sports_shirokov.png"),
@@ -6663,6 +6672,7 @@ namespace Win8StartScreen
                 BackgroundColor = "#FF008A00",
                 IconImagePath = MetroIconResolver.ResolveIconPath("Money"),
                 IconVectorPath = "M3.5,18.5L9.5,12.5L13.5,16.5L22,6.92L20.59,5.5L13.5,13.5L9.5,9.5L2,17L3.5,18.5M20,10H22V4H16V6H19.5",
+                IconSize = 100,
                 LiveText = "DOW 16 556,82",
                 LiveTemplate = "FinanceQuotes",
                 LiveQuote1Name = "DOW",
@@ -6685,6 +6695,7 @@ namespace Win8StartScreen
                 Size = TileSize.Medium,
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(224, 83, 34)),
                 IconImagePath = MetroIconResolver.ResolveIconPath("People"),
+                IconSize = 110,
                 IconVectorPath = "M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"
             };
 
@@ -6694,6 +6705,7 @@ namespace Win8StartScreen
                 Size = TileSize.Medium,
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(218, 165, 32)),
                 IconImagePath = MetroIconResolver.ResolveIconPath("Desktop"),
+                IconSize = 120,
                 IconVectorPath = "M20,18c1.1,0 2,-0.9 2,-2V6c0,-1.1 -0.9,-2 -2,-2H4C2.9,4 2,4.9 2,6v10c0,1.1 0.9,2 2,2H0v2h24v-2h-4zM4,6h16v10H4V6z",
                 ExecutablePath = "explorer.exe"
             };
@@ -6705,6 +6717,7 @@ namespace Win8StartScreen
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(0, 120, 215)),
                 IconImagePath = MetroIconResolver.ResolveIconPath("Weather"),
                 IconVectorPath = "M12,18C11.11,18 10.26,17.8 9.5,17.45C11.56,16.5 13,14.42 13,12C13,9.58 11.56,7.5 9.5,6.55C10.26,6.2 11.11,6 12,6A6,6 0 0,1 18,12A6,6 0 0,1 12,18M20,8.69V4H15.31L12,0.69L8.69,4H4V8.69L0.69,12L4,15.31V20H8.69L12,23.31L15.31,20H20V15.31L23.31,12L20,8.69Z",
+                IconSize = 160,
                 LiveTemplate = "Weather",
                 LiveImagePath = GetAssetPath("LiveTiles\\weather_sky.png"),
                 LiveCity = "Москва",
@@ -6719,6 +6732,7 @@ namespace Win8StartScreen
                 Size = TileSize.Medium,
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(0, 130, 114)),
                 IconImagePath = MetroIconResolver.ResolveIconPath("Photos"),
+                IconSize = 183.318,
                 IconVectorPath = "M8.5,13.5L11,16.5L14.5,12L19,18H5M21,19V5C21,3.89 20.1,3 19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19Z"
             };
 
@@ -6728,6 +6742,7 @@ namespace Win8StartScreen
                 Size = TileSize.Medium,
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(128, 57, 123)),
                 IconImagePath = MetroIconResolver.ResolveIconPath("OneNote"),
+                IconSize = 85,
                 IconGlyph = "N"
             };
 
@@ -6738,6 +6753,7 @@ namespace Win8StartScreen
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(162, 0, 37)),
                 IconImagePath = MetroIconResolver.ResolveIconPath("News"),
                 IconVectorPath = "M20,11H4V8H20M20,15H13V13H20M20,19H13V17H20M11,19H4V13H11M20,3H4C2.89,3 2,3.89 2,5V19A2,2 0 0,0 4,21H20A2,2 0 0,0 22,19V5C22,3.89 21.1,3 20,3Z",
+                IconSize = 183.251,
                 LiveText = "Последняя молитва",
                 LiveTemplate = "PhotoBanner",
                 LiveImagePath = GetAssetPath("LiveTiles\\news_pope.png"),
@@ -6752,6 +6768,7 @@ namespace Win8StartScreen
                 Size = TileSize.Medium,
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(224, 83, 34)),
                 IconImagePath = MetroIconResolver.ResolveIconPath("Help"),
+                IconSize = 65.758,
                 IconVectorPath = "M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z"
             };
 
@@ -6761,6 +6778,7 @@ namespace Win8StartScreen
                 Size = TileSize.Medium,
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(0, 120, 215)),
                 IconImagePath = MetroIconResolver.ResolveIconPath("OneDrive"),
+                IconSize = 95,
                 IconVectorPath = "M19.35,10.04C18.67,6.59 15.64,4 12,4C9.11,4 6.6,5.64 5.35,8.04C2.34,8.36 0,10.91 0,14A6,6 0 0,0 6,20H19A5,5 0 0,0 24,15C24,12.36 21.95,10.22 19.35,10.04Z"
             };
 
@@ -6770,6 +6788,7 @@ namespace Win8StartScreen
                 Size = TileSize.Medium,
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(224, 83, 34)),
                 IconImagePath = MetroIconResolver.ResolveIconPath("Health"),
+                IconSize = 100,
                 IconVectorPath = "M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z"
             };
 
@@ -6779,6 +6798,7 @@ namespace Win8StartScreen
                 Size = TileSize.Medium,
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(0, 130, 114)),
                 IconImagePath = MetroIconResolver.ResolveIconPath("Food"),
+                IconSize = 100,
                 IconVectorPath = "M11,9H9V2H7V9H5V2H3V9C3,11.12 4.66,12.84 6.75,12.97V22H9.25V12.97C11.34,12.84 13,11.12 13,9V2H11V9M16,6V14H18.5V22H21V2C18.24,2 16,4.24 16,6Z",
                 LiveTemplate = "PhotoBanner",
                 LiveImagePath = GetAssetPath("LiveTiles\\food_pasta.png"),
@@ -6793,6 +6813,7 @@ namespace Win8StartScreen
                 Size = TileSize.Medium,
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(104, 33, 122)),
                 IconImagePath = MetroIconResolver.ResolveIconPath("Maps"),
+                IconSize = 191.867,
                 IconVectorPath = "M15,19L9,16.89L3.55,19.55C3.33,19.66 3.1,19.67 2.89,19.58C2.68,19.49 2.5,19.3 2.5,19.07V5.5C2.5,5.2 2.68,4.94 2.94,4.84L9,2.5L15,4.61L20.45,1.95C20.67,1.84 20.9,1.83 21.11,1.92C21.32,2.01 21.5,2.2 21.5,2.43V16C21.5,16.3 21.32,16.56 21.06,16.66L15,19Z"
             };
 
@@ -6802,6 +6823,7 @@ namespace Win8StartScreen
                 Size = TileSize.Medium,
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(162, 0, 37)),
                 IconImagePath = MetroIconResolver.ResolveIconPath("Reading List"),
+                IconSize = 205.953,
                 IconVectorPath = "M3,5H21V7H3V5M3,9H21V11H3V9M3,13H21V15H3V13M3,17H21V19H3V17Z"
             };
 
