@@ -4,12 +4,25 @@ using System.IO;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 
 namespace Win8StartScreen
 {
     public partial class App : System.Windows.Application
     {
+        static App()
+        {
+            try
+            {
+                Timeline.DesiredFrameRateProperty.OverrideMetadata(
+                    typeof(Timeline),
+                    new FrameworkPropertyMetadata(144)
+                );
+            }
+            catch { }
+        }
+
         private GlobalKeyboardHook? _hook;
         private TaskbarHook? _taskbarHook;
         private MainWindow? _mainWindow;

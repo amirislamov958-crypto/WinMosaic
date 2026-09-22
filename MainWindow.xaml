@@ -6,7 +6,7 @@
         WindowStyle="None"
         AllowsTransparency="False"
         ResizeMode="NoResize"
-        WindowState="Maximized"
+        WindowState="Normal"
         Topmost="True"
         ShowInTaskbar="False"
         Background="{DynamicResource ThemeBackgroundPrimary}"
@@ -19,8 +19,10 @@
 
     <Grid x:Name="RootLayout" ClipToBounds="True" Background="Transparent" MouseRightButtonUp="RootLayout_MouseRightButtonUp" PreviewMouseDown="RootLayout_PreviewMouseDown">
         
-        <!-- ДИНАМИЧЕСКИЙ ФОН WINDOWS 8.1 (ЧИСТЫЙ ГРАДИЕНТ ТЕМЫ ИЛИ СВОИ ОБОИ С ЗАТЕМНЕНИЕМ) -->
-        <Grid x:Name="WallpaperCanvas" IsHitTestVisible="False">
+        <!-- ЕДИНЫЙ АППАРАТНЫЙ ФОНОВЫЙ СЛОЙ ЭКРАНА ПУСК -->
+        <Grid x:Name="BackgroundLayer" IsHitTestVisible="False">
+            <!-- ДИНАМИЧЕСКИЙ ФОН WINDOWS 8.1 (ЧИСТЫЙ ГРАДИЕНТ ТЕМЫ ИЛИ СВОИ ОБОИ С ЗАТЕМНЕНИЕМ) -->
+            <Grid x:Name="WallpaperCanvas">
             <!-- Градиентная подложка по умолчанию -->
             <Grid.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -178,6 +180,7 @@
                     </Canvas>
                 </Canvas>
             </Viewbox>
+        </Grid>
 
         <!-- ============================================================== -->
         <!-- 1. ГЛАВНЫЙ ЭКРАН ПУСК (START SCREEN)                           -->
