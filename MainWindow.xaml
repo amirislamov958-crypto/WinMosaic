@@ -21,6 +21,9 @@
         
         <!-- ДИНАМИЧЕСКИЙ ФОН WINDOWS 8.1 (ЧИСТЫЙ ГРАДИЕНТ ТЕМЫ ИЛИ СВОИ ОБОИ С ЗАТЕМНЕНИЕМ) -->
         <Grid x:Name="WallpaperCanvas" IsHitTestVisible="False">
+            <Grid.CacheMode>
+                <BitmapCache EnableClearType="False" RenderAtScale="1.0" SnapsToDevicePixels="True"/>
+            </Grid.CacheMode>
             <!-- Градиентная подложка по умолчанию -->
             <Grid.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">

@@ -431,46 +431,36 @@ namespace Win8StartScreen
             TileSkew.AngleY = 0;
         }
 
-        public void TriggerEntranceAnimation(int delayMs = 0)
+        public void TriggerEntranceAnimation(int delayMs = 0, double distance = 48.0, int durationMs = 200)
         {
-            ResetVisualState();
+            EntranceTranslate.BeginAnimation(TranslateTransform.XProperty, null);
+            BeginAnimation(OpacityProperty, null);
 
-            // Начальное положение: легкое смещение вправо (70px) и прозрачность 0
-            EntranceTranslate.X = 70.0;
+            EntranceTranslate.X = distance;
             Opacity = 0.0;
 
             var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
 
-            // Аппаратный плавный сдвиг плитки справа налево (70px -> 0px) за 360мс
+            // Аппаратный сверхплавный сдвиг плитки справа налево (48px -> 0px)
             var slideAnim = new DoubleAnimation
             {
-                From = 70.0,
+                From = distance,
                 To = 0.0,
-                Duration = TimeSpan.FromMilliseconds(360),
+                Duration = TimeSpan.FromMilliseconds(durationMs),
                 BeginTime = TimeSpan.FromMilliseconds(delayMs),
                 EasingFunction = ease,
-                FillBehavior = FillBehavior.Stop
-            };
-            slideAnim.Completed += (s, e) =>
-            {
-                EntranceTranslate.BeginAnimation(TranslateTransform.XProperty, null);
-                EntranceTranslate.X = 0;
+                FillBehavior = FillBehavior.HoldEnd
             };
 
-            // Плавное проявление плитки (0.0 -> 1.0) за 260мс
+            // Плавное проявление плитки (0.0 -> 1.0)
             var fadeAnim = new DoubleAnimation
             {
                 From = 0.0,
                 To = 1.0,
-                Duration = TimeSpan.FromMilliseconds(260),
+                Duration = TimeSpan.FromMilliseconds(Math.Min(160, durationMs)),
                 BeginTime = TimeSpan.FromMilliseconds(delayMs),
                 EasingFunction = ease,
-                FillBehavior = FillBehavior.Stop
-            };
-            fadeAnim.Completed += (s, e) =>
-            {
-                BeginAnimation(OpacityProperty, null);
-                Opacity = 1.0;
+                FillBehavior = FillBehavior.HoldEnd
             };
 
             EntranceTranslate.BeginAnimation(TranslateTransform.XProperty, slideAnim);

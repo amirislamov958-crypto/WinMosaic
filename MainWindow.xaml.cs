@@ -2001,19 +2001,20 @@ namespace Win8StartScreen
             this.BeginAnimation(OpacityProperty, null);
             this.Opacity = 1.0;
 
-            // Начальное состояние фона: полностью готов и стабилен без задержек и артефактов
+            // Начальное состояние фона: скрыт (0.0), чтобы сначала проявились плитки
             bool hasCustomWp = !string.IsNullOrEmpty(ThemeManager.CurrentTheme.CustomWallpaperPath) && File.Exists(ThemeManager.CurrentTheme.CustomWallpaperPath);
-            WallpaperCanvas.Opacity = 1.0;
+            WallpaperCanvas.Opacity = 0.0;
             if (RibbonContainer != null)
             {
+                RibbonContainer.BeginAnimation(OpacityProperty, null);
                 if (RibbonTranslate != null) RibbonTranslate.Y = 0;
-                RibbonContainer.Opacity = 1.0;
+                RibbonContainer.Opacity = 0.0;
                 RibbonContainer.Visibility = hasCustomWp ? Visibility.Collapsed : Visibility.Visible;
             }
             if (RibbonCanvas != null)
             {
                 RibbonCanvas.BeginAnimation(OpacityProperty, null);
-                RibbonCanvas.Opacity = 1.0;
+                RibbonCanvas.Opacity = 0.0;
                 RibbonCanvas.Visibility = hasCustomWp ? Visibility.Collapsed : Visibility.Visible;
             }
 
@@ -2027,6 +2028,8 @@ namespace Win8StartScreen
 
             // Экран Пуск видим и подготавливается к аппаратному появлению
             StartScreenContainer.Visibility = Visibility.Visible;
+            StartScreenContainer.Opacity = 1.0;
+            StartScreenTranslate.X = 0;
             StartScreenTranslate.Y = 0;
 
             if (_isSemanticZoomedOut)
@@ -2048,29 +2051,39 @@ namespace Win8StartScreen
 
             UncloakWindow();
 
-            // Аппаратный сверхплавный сдвиг экрана Пуск (45px -> 0px) и проявление (0.0 -> 1.0) за 180мс (144 FPS без фризов)
-            StartScreenTranslate.X = 45.0;
-            StartScreenContainer.Opacity = 0.0;
+            // 1. СНАЧАЛА ПОЯВЛЯЮТСЯ ПЛИТКИ: плавная каскадная аппаратная волна (0мс -> 200мс)
+            AnimateTilesEntrance();
 
+            // 2. ПОСЛЕ ПЛИТОК - ФОН: мягко и плавно проявляется фон с узорами и градиентом (100мс -> 320мс)
             var easeOut = new CubicEase { EasingMode = EasingMode.EaseOut };
-            var slideIn = new DoubleAnimation(45.0, 0.0, TimeSpan.FromMilliseconds(180))
+            var bgFadeIn = new DoubleAnimation
             {
-                EasingFunction = easeOut
-            };
-            var fadeIn = new DoubleAnimation(0.0, 1.0, TimeSpan.FromMilliseconds(150))
-            {
-                EasingFunction = easeOut
+                From = 0.0,
+                To = 1.0,
+                Duration = TimeSpan.FromMilliseconds(220),
+                BeginTime = TimeSpan.FromMilliseconds(100), // Элегантная задержка: плитки уже выкатились, и за ними расцветает фон
+                EasingFunction = easeOut,
+                FillBehavior = FillBehavior.HoldEnd
             };
 
-            slideIn.Completed += (s, e) =>
+            bgFadeIn.Completed += (s, e) =>
             {
                 if (_screenState == ScreenState.Opening)
                 {
                     _screenState = ScreenState.Open;
-                    StartScreenTranslate.BeginAnimation(TranslateTransform.XProperty, null);
-                    StartScreenTranslate.X = 0;
-                    StartScreenContainer.BeginAnimation(OpacityProperty, null);
-                    StartScreenContainer.Opacity = 1.0;
+                    WallpaperCanvas.BeginAnimation(OpacityProperty, null);
+                    WallpaperCanvas.Opacity = 1.0;
+                    if (RibbonContainer != null)
+                    {
+                        RibbonContainer.BeginAnimation(OpacityProperty, null);
+                        RibbonContainer.Opacity = 1.0;
+                    }
+                    if (RibbonCanvas != null)
+                    {
+                        RibbonCanvas.BeginAnimation(OpacityProperty, null);
+                        RibbonCanvas.Opacity = 1.0;
+                    }
+
                     LiveTileCoordinator.Start();
 
                     // Асинхронно обновляем обои рабочего стола в фоне без влияния на плавность анимации
@@ -2078,8 +2091,9 @@ namespace Win8StartScreen
                 }
             };
 
-            StartScreenTranslate.BeginAnimation(TranslateTransform.XProperty, slideIn);
-            StartScreenContainer.BeginAnimation(OpacityProperty, fadeIn);
+            WallpaperCanvas.BeginAnimation(OpacityProperty, bgFadeIn);
+            if (RibbonContainer != null && !hasCustomWp) RibbonContainer.BeginAnimation(OpacityProperty, bgFadeIn);
+            if (RibbonCanvas != null && !hasCustomWp) RibbonCanvas.BeginAnimation(OpacityProperty, bgFadeIn);
         }
 
         public void CloseScreenAnimated()
@@ -5647,9 +5661,9 @@ namespace Win8StartScreen
             foreach (var tile in tiles)
             {
                 double x = Canvas.GetLeft(tile);
-                int colIndex = Math.Max(0, (int)Math.Floor(x / 130.0));
-                int delayMs = Math.Min(320, colIndex * 35);
-                tile.TriggerEntranceAnimation(delayMs);
+                int colIndex = Math.Max(0, (int)Math.Floor(x / 160.0));
+                int delayMs = Math.Min(70, colIndex * 16);
+                tile.TriggerEntranceAnimation(delayMs, distance: 48.0, durationMs: 200);
             }
         }
 
