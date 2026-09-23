@@ -9,7 +9,7 @@
         WindowState="Normal"
         Topmost="True"
         ShowInTaskbar="False"
-        Background="{DynamicResource ThemeBackgroundPrimary}"
+        Background="#FF0A0A0D"
         Focusable="True"
         Visibility="Hidden"
         PreviewKeyDown="Window_PreviewKeyDown"

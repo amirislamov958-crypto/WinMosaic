@@ -2109,11 +2109,20 @@ namespace Win8StartScreen
             DeselectAllTiles();
 
             int targetFps = GetCurrentScreenRefreshRate();
-
-            // 1. СНАЧАЛА ПОЯВЛЯЮТСЯ ПЛИТКИ: каскадная аппаратная волна плиток со скольжением и мягким проявлением
-            AnimateTilesEntrance(targetFps);
-
             var easeOut = new CubicEase { EasingMode = EasingMode.EaseOut };
+
+            // 1. Мягкое проявление окна поверх рабочего стола (0мс -> 140мс)
+            this.BeginAnimation(OpacityProperty, null);
+            this.Opacity = 0.0;
+            var windowFadeIn = new DoubleAnimation(0.0, 1.0, TimeSpan.FromMilliseconds(140))
+            {
+                EasingFunction = easeOut,
+                FillBehavior = FillBehavior.HoldEnd
+            };
+            Timeline.SetDesiredFrameRate(windowFadeIn, targetFps);
+
+            // 2. СНАЧАЛА ПОЯВЛЯЮТСЯ ПЛИТКИ: каскадная аппаратная волна плиток со скольжением и мягким проявлением
+            AnimateTilesEntrance(targetFps);
 
             var contentFadeIn = new DoubleAnimation
             {
@@ -2134,14 +2143,15 @@ namespace Win8StartScreen
             StartScreenContainer.BeginAnimation(OpacityProperty, contentFadeIn);
 
             UncloakWindow();
+            this.BeginAnimation(OpacityProperty, windowFadeIn);
 
-            // 2. ПОСЛЕ ПЛИТОК - ФОН: мягко расцветает фон с узорами и градиентом (90мс -> 390мс)
+            // 3. ПОСЛЕ ПЛИТОК - ФОН: мягко расцветает фон с узорами и градиентом (110мс -> 450мс)
             var bgFadeIn = new DoubleAnimation
             {
                 From = 0.0,
                 To = 1.0,
-                Duration = TimeSpan.FromMilliseconds(300),
-                BeginTime = TimeSpan.FromMilliseconds(90), // Плитки уже скользят и видны, за ними плавно проявляется фон
+                Duration = TimeSpan.FromMilliseconds(340),
+                BeginTime = TimeSpan.FromMilliseconds(110), // Плитки уже скользят и видны, за ними плавно расцветает фон
                 EasingFunction = easeOut,
                 FillBehavior = FillBehavior.HoldEnd
             };
@@ -2152,6 +2162,8 @@ namespace Win8StartScreen
                 if (_screenState == ScreenState.Opening)
                 {
                     _screenState = ScreenState.Open;
+                    this.BeginAnimation(OpacityProperty, null);
+                    this.Opacity = 1.0;
                     if (BackgroundLayer != null)
                     {
                         BackgroundLayer.BeginAnimation(OpacityProperty, null);
@@ -2194,36 +2206,46 @@ namespace Win8StartScreen
             this.Opacity = 1.0;
 
             int targetFps = GetCurrentScreenRefreshRate();
-            var easeIn = new CubicEase { EasingMode = EasingMode.EaseIn };
-            var duration = TimeSpan.FromMilliseconds(260);
+            var easeInOut = new CubicEase { EasingMode = EasingMode.EaseInOut };
+            var duration = TimeSpan.FromMilliseconds(280);
 
-            // 1. Плавный аппаратный сдвиг содержимого влево (0px -> -80px) за 260мс
-            var contentSlideOut = new DoubleAnimation(0.0, -80.0, duration)
+            // 1. Плавный аппаратный сдвиг содержимого влево (0px -> -90px) за 280мс
+            var contentSlideOut = new DoubleAnimation(0.0, -90.0, duration)
             {
-                EasingFunction = easeIn
+                EasingFunction = easeInOut
             };
             Timeline.SetDesiredFrameRate(contentSlideOut, targetFps);
 
             // 2. Плавное затухание содержимого
-            var contentFadeOut = new DoubleAnimation(1.0, 0.0, TimeSpan.FromMilliseconds(230))
+            var contentFadeOut = new DoubleAnimation(1.0, 0.0, TimeSpan.FromMilliseconds(240))
             {
-                EasingFunction = easeIn
+                EasingFunction = easeInOut
             };
             Timeline.SetDesiredFrameRate(contentFadeOut, targetFps);
 
             // 3. Мягкое синхронное затухание фона
             var bgFadeOut = new DoubleAnimation(1.0, 0.0, duration)
             {
-                EasingFunction = easeIn
+                EasingFunction = easeInOut
             };
             Timeline.SetDesiredFrameRate(bgFadeOut, targetFps);
 
-            contentSlideOut.Completed += (s, e) =>
+            // 4. Мягкое растворение всего окна в рабочий стол (плавное затухание)
+            var windowFadeOut = new DoubleAnimation(1.0, 0.0, duration)
+            {
+                EasingFunction = easeInOut
+            };
+            Timeline.SetDesiredFrameRate(windowFadeOut, targetFps);
+
+            windowFadeOut.Completed += (s, e) =>
             {
                 if (_screenState == ScreenState.Closing)
                 {
                     _screenState = ScreenState.Closed;
                     CloakWindow();
+
+                    this.BeginAnimation(OpacityProperty, null);
+                    this.Opacity = 1.0;
 
                     if (BackgroundLayer != null)
                     {
@@ -2284,6 +2306,7 @@ namespace Win8StartScreen
             }
 
             BackgroundLayer?.BeginAnimation(OpacityProperty, bgFadeOut);
+            this.BeginAnimation(OpacityProperty, windowFadeOut);
         }
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
