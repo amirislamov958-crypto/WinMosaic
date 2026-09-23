@@ -431,39 +431,50 @@ namespace Win8StartScreen
             TileSkew.AngleY = 0;
         }
 
-        public void TriggerEntranceAnimation(int delayMs = 0, double distance = 100.0, int durationMs = 340, int? targetFps = null)
+        public void TriggerEntranceAnimation(int delayMs = 0)
         {
-            EntranceTranslate.BeginAnimation(TranslateTransform.XProperty, null);
-            BeginAnimation(OpacityProperty, null);
-            Opacity = 1.0;
+            ResetVisualState();
 
-            EntranceTranslate.X = distance;
+            // Начальное положение: легкое смещение вправо (70px) и прозрачность 0
+            EntranceTranslate.X = 70.0;
+            Opacity = 0.0;
 
             var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
 
-            // Аппаратный сверхплавный сдвиг плитки справа налево
+            // Аппаратный плавный сдвиг плитки справа налево (70px -> 0px) за 360мс
             var slideAnim = new DoubleAnimation
             {
-                From = distance,
+                From = 70.0,
                 To = 0.0,
-                Duration = TimeSpan.FromMilliseconds(durationMs),
+                Duration = TimeSpan.FromMilliseconds(360),
                 BeginTime = TimeSpan.FromMilliseconds(delayMs),
                 EasingFunction = ease,
-                FillBehavior = FillBehavior.HoldEnd
+                FillBehavior = FillBehavior.Stop
             };
-
-            if (targetFps.HasValue && targetFps.Value >= 30)
-            {
-                Timeline.SetDesiredFrameRate(slideAnim, targetFps.Value);
-            }
-
             slideAnim.Completed += (s, e) =>
             {
                 EntranceTranslate.BeginAnimation(TranslateTransform.XProperty, null);
                 EntranceTranslate.X = 0;
             };
 
+            // Плавное проявление плитки (0.0 -> 1.0) за 260мс
+            var fadeAnim = new DoubleAnimation
+            {
+                From = 0.0,
+                To = 1.0,
+                Duration = TimeSpan.FromMilliseconds(260),
+                BeginTime = TimeSpan.FromMilliseconds(delayMs),
+                EasingFunction = ease,
+                FillBehavior = FillBehavior.Stop
+            };
+            fadeAnim.Completed += (s, e) =>
+            {
+                BeginAnimation(OpacityProperty, null);
+                Opacity = 1.0;
+            };
+
             EntranceTranslate.BeginAnimation(TranslateTransform.XProperty, slideAnim);
+            BeginAnimation(OpacityProperty, fadeAnim);
         }
 
         // =================== 3D Perspective Tilt Physics & Dragging ===================

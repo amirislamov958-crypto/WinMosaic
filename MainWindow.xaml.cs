@@ -2038,7 +2038,6 @@ namespace Win8StartScreen
             _isNavigating = false;
 
             // Сбрасываем предыдущие анимации
-            BackgroundLayer?.BeginAnimation(OpacityProperty, null);
             WallpaperCanvas.BeginAnimation(OpacityProperty, null);
             StartScreenContainer.BeginAnimation(OpacityProperty, null);
             StartScreenTranslate.BeginAnimation(TranslateTransform.XProperty, null);
@@ -2053,14 +2052,16 @@ namespace Win8StartScreen
             this.BeginAnimation(OpacityProperty, null);
             this.Opacity = 1.0;
 
-            // Начальное состояние фона: скрыт (0.0), чтобы сначала проявились плитки
+            // Начальное состояние:
+            // 1. Декоративный фон с лентами и градиентом скрыт (0.0), видна базовая подложка темы
+            WallpaperCanvas.Opacity = 0.0;
             bool hasCustomWp = !string.IsNullOrEmpty(ThemeManager.CurrentTheme.CustomWallpaperPath) && File.Exists(ThemeManager.CurrentTheme.CustomWallpaperPath);
-            WallpaperCanvas.Opacity = 1.0;
             if (RibbonContainer != null)
             {
                 RibbonContainer.BeginAnimation(OpacityProperty, null);
+                RibbonTranslate?.BeginAnimation(TranslateTransform.YProperty, null);
                 if (RibbonTranslate != null) RibbonTranslate.Y = 0;
-                RibbonContainer.Opacity = 1.0;
+                RibbonContainer.Opacity = 0.0;
                 RibbonContainer.Visibility = hasCustomWp ? Visibility.Collapsed : Visibility.Visible;
             }
             if (RibbonCanvas != null)
@@ -2069,13 +2070,8 @@ namespace Win8StartScreen
                 RibbonCanvas.Opacity = 1.0;
                 RibbonCanvas.Visibility = hasCustomWp ? Visibility.Collapsed : Visibility.Visible;
             }
-            if (BackgroundLayer != null)
-            {
-                BackgroundLayer.BeginAnimation(OpacityProperty, null);
-                BackgroundLayer.Opacity = 0.0;
-            }
 
-            // Экран приложений скрыт за нижней границей
+            // 2. Экран приложений скрыт за нижней границей
             double h = ActualHeight > 0 ? ActualHeight : SystemParameters.PrimaryScreenHeight;
             double offscreenY = h > 0 ? h : 1080.0;
             AppsScreenContainer.Opacity = 1.0;
@@ -2083,12 +2079,9 @@ namespace Win8StartScreen
             AppsScreenTranslate.X = 0;
             AppsScreenTranslate.Y = offscreenY;
 
-            // Экран Пуск подготавливаем к плавному появлению
+            // 3. Экран Пуск видим и подготавливается к появлению
             StartScreenContainer.Visibility = Visibility.Visible;
-            StartScreenContainer.BeginAnimation(OpacityProperty, null);
-            StartScreenContainer.Opacity = 0.0;
-            StartScreenTranslate.BeginAnimation(TranslateTransform.XProperty, null);
-            StartScreenTranslate.X = 0;
+            StartScreenContainer.Opacity = 1.0;
             StartScreenTranslate.Y = 0;
 
             if (_isSemanticZoomedOut)
@@ -2108,76 +2101,50 @@ namespace Win8StartScreen
             ClosePersonalize();
             DeselectAllTiles();
 
-            int targetFps = GetCurrentScreenRefreshRate();
-            var easeOut = new CubicEase { EasingMode = EasingMode.EaseOut };
-
-            // 1. Мягкое проявление окна поверх рабочего стола (0мс -> 140мс)
-            this.BeginAnimation(OpacityProperty, null);
-            this.Opacity = 0.0;
-            var windowFadeIn = new DoubleAnimation(0.0, 1.0, TimeSpan.FromMilliseconds(140))
-            {
-                EasingFunction = easeOut,
-                FillBehavior = FillBehavior.HoldEnd
-            };
-            Timeline.SetDesiredFrameRate(windowFadeIn, targetFps);
-
-            // 2. СНАЧАЛА ПОЯВЛЯЮТСЯ ПЛИТКИ: каскадная аппаратная волна плиток со скольжением и мягким проявлением
-            AnimateTilesEntrance(targetFps);
-
-            var contentFadeIn = new DoubleAnimation
-            {
-                From = 0.0,
-                To = 1.0,
-                Duration = TimeSpan.FromMilliseconds(260),
-                EasingFunction = easeOut,
-                FillBehavior = FillBehavior.HoldEnd
-            };
-            Timeline.SetDesiredFrameRate(contentFadeIn, targetFps);
-
-            contentFadeIn.Completed += (s, e) =>
-            {
-                StartScreenContainer.BeginAnimation(OpacityProperty, null);
-                StartScreenContainer.Opacity = 1.0;
-            };
-
-            StartScreenContainer.BeginAnimation(OpacityProperty, contentFadeIn);
-
             UncloakWindow();
-            this.BeginAnimation(OpacityProperty, windowFadeIn);
 
-            // 3. ПОСЛЕ ПЛИТОК - ФОН: мягко расцветает фон с узорами и градиентом (110мс -> 450мс)
+            // 1. СНАЧАЛА ПОЯВЛЯЮТСЯ ПЛИТКИ: каскадная волна плиток
+            AnimateTilesEntrance();
+
+            // Мягкий сдвиг заголовка и навигации (35px -> 0px) за 240мс
+            StartScreenTranslate.X = 35.0;
+            var slideIn = new DoubleAnimation(35.0, 0.0, TimeSpan.FromMilliseconds(240))
+            {
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+            StartScreenTranslate.BeginAnimation(TranslateTransform.XProperty, slideIn);
+
+            // 2. ЗАТЕМ ПЛАВНО ПРОЯВЛЯЕТСЯ САМ ВЕСЬ ФОН (0.0 -> 1.0)
             var bgFadeIn = new DoubleAnimation
             {
                 From = 0.0,
                 To = 1.0,
-                Duration = TimeSpan.FromMilliseconds(340),
-                BeginTime = TimeSpan.FromMilliseconds(110), // Плитки уже скользят и видны, за ними плавно расцветает фон
-                EasingFunction = easeOut,
-                FillBehavior = FillBehavior.HoldEnd
+                Duration = TimeSpan.FromMilliseconds(260),
+                BeginTime = TimeSpan.FromMilliseconds(90), // элегантная задержка: сначала плитки, затем заливается фон
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
             };
-            Timeline.SetDesiredFrameRate(bgFadeIn, targetFps);
-
             bgFadeIn.Completed += (s, e) =>
             {
                 if (_screenState == ScreenState.Opening)
                 {
                     _screenState = ScreenState.Open;
-                    this.BeginAnimation(OpacityProperty, null);
-                    this.Opacity = 1.0;
-                    if (BackgroundLayer != null)
-                    {
-                        BackgroundLayer.BeginAnimation(OpacityProperty, null);
-                        BackgroundLayer.Opacity = 1.0;
-                    }
-
                     LiveTileCoordinator.Start();
+                    WallpaperCanvas.BeginAnimation(OpacityProperty, null);
+                    WallpaperCanvas.Opacity = 1.0;
+                    if (RibbonContainer != null)
+                    {
+                        RibbonContainer.BeginAnimation(OpacityProperty, null);
+                        RibbonContainer.Opacity = 1.0;
+                    }
+                    StartScreenTranslate.BeginAnimation(TranslateTransform.XProperty, null);
+                    StartScreenTranslate.X = 0;
 
                     // Асинхронно обновляем обои рабочего стола в фоне без влияния на плавность анимации
                     Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(() => UpdateDesktopTileWallpaper(false)));
                 }
             };
-
-            BackgroundLayer?.BeginAnimation(OpacityProperty, bgFadeIn);
+            WallpaperCanvas.BeginAnimation(OpacityProperty, bgFadeIn);
+            if (RibbonContainer != null && !hasCustomWp) RibbonContainer.BeginAnimation(OpacityProperty, bgFadeIn);
         }
 
         public void CloseScreenAnimated()
@@ -2193,51 +2160,67 @@ namespace Win8StartScreen
             DeselectAllTiles();
 
             // Сбрасываем активные анимации
-            BackgroundLayer?.BeginAnimation(OpacityProperty, null);
+            WallpaperCanvas.BeginAnimation(OpacityProperty, null);
             StartScreenContainer.BeginAnimation(OpacityProperty, null);
             StartScreenTranslate.BeginAnimation(TranslateTransform.XProperty, null);
             AppsScreenContainer.BeginAnimation(OpacityProperty, null);
             AppsScreenTranslate.BeginAnimation(TranslateTransform.XProperty, null);
             RibbonContainer?.BeginAnimation(OpacityProperty, null);
             RibbonTranslate?.BeginAnimation(TranslateTransform.YProperty, null);
-            RootLayout.BeginAnimation(OpacityProperty, null);
-            RootLayout.Opacity = 1.0;
             this.BeginAnimation(OpacityProperty, null);
-            this.Opacity = 1.0;
 
-            int targetFps = GetCurrentScreenRefreshRate();
-            var easeInOut = new CubicEase { EasingMode = EasingMode.EaseInOut };
-            var duration = TimeSpan.FromMilliseconds(280);
+            var easeIn = new CubicEase { EasingMode = EasingMode.EaseIn };
 
-            // 1. Плавный аппаратный сдвиг содержимого влево (0px -> -90px) за 280мс
-            var contentSlideOut = new DoubleAnimation(0.0, -90.0, duration)
+            // 1. СНАЧАЛА ПЛИТКИ (И СОДЕРЖИМОЕ ЭКРАНА): быстро и плавно угасают со сдвигом влево (0мс -> 130мс)
+            var contentFadeOut = new DoubleAnimation
             {
-                EasingFunction = easeInOut
+                From = 1.0,
+                To = 0.0,
+                Duration = TimeSpan.FromMilliseconds(130),
+                EasingFunction = easeIn
             };
-            Timeline.SetDesiredFrameRate(contentSlideOut, targetFps);
 
-            // 2. Плавное затухание содержимого
-            var contentFadeOut = new DoubleAnimation(1.0, 0.0, TimeSpan.FromMilliseconds(240))
+            var contentSlideOut = new DoubleAnimation
             {
-                EasingFunction = easeInOut
+                From = 0.0,
+                To = -35.0,
+                Duration = TimeSpan.FromMilliseconds(140),
+                EasingFunction = easeIn
             };
-            Timeline.SetDesiredFrameRate(contentFadeOut, targetFps);
 
-            // 3. Мягкое синхронное затухание фона
-            var bgFadeOut = new DoubleAnimation(1.0, 0.0, duration)
+            if (_activeView == ActiveView.Apps)
             {
-                EasingFunction = easeInOut
-            };
-            Timeline.SetDesiredFrameRate(bgFadeOut, targetFps);
-
-            // 4. Мягкое растворение всего окна в рабочий стол (плавное затухание)
-            var windowFadeOut = new DoubleAnimation(1.0, 0.0, duration)
+                AppsScreenContainer.BeginAnimation(OpacityProperty, contentFadeOut);
+                AppsScreenTranslate.BeginAnimation(TranslateTransform.XProperty, contentSlideOut);
+            }
+            else
             {
-                EasingFunction = easeInOut
-            };
-            Timeline.SetDesiredFrameRate(windowFadeOut, targetFps);
+                StartScreenContainer.BeginAnimation(OpacityProperty, contentFadeOut);
+                StartScreenTranslate.BeginAnimation(TranslateTransform.XProperty, contentSlideOut);
+            }
 
-            windowFadeOut.Completed += (s, e) =>
+            // 2. ЗАТЕМ ПЛАВНО ИСЧЕЗАЮТ ВЕСЬ ФОН, ЛИНИЯ И ОКНО К РАБОЧЕМУ СТОЛУ (70мс -> 220мс)
+            // Задержка 70мс позволяет плиткам уже почти полностью исчезнуть до ухода фона,
+            // что кардинально снижает нагрузку на GPU и исключает любые лаги (butter-smooth 60-144 FPS).
+            var bgFadeOut = new DoubleAnimation
+            {
+                From = 1.0,
+                To = 0.0,
+                BeginTime = TimeSpan.FromMilliseconds(70),
+                Duration = TimeSpan.FromMilliseconds(150),
+                EasingFunction = easeIn
+            };
+
+            var winFadeOut = new DoubleAnimation
+            {
+                From = 1.0,
+                To = 0.0,
+                BeginTime = TimeSpan.FromMilliseconds(70),
+                Duration = TimeSpan.FromMilliseconds(150),
+                EasingFunction = easeIn
+            };
+
+            winFadeOut.Completed += (s, e) =>
             {
                 if (_screenState == ScreenState.Closing)
                 {
@@ -2247,11 +2230,8 @@ namespace Win8StartScreen
                     this.BeginAnimation(OpacityProperty, null);
                     this.Opacity = 1.0;
 
-                    if (BackgroundLayer != null)
-                    {
-                        BackgroundLayer.BeginAnimation(OpacityProperty, null);
-                        BackgroundLayer.Opacity = 1.0;
-                    }
+                    WallpaperCanvas.BeginAnimation(OpacityProperty, null);
+                    WallpaperCanvas.Opacity = 1.0;
 
                     StartScreenTranslate.BeginAnimation(TranslateTransform.XProperty, null);
                     StartScreenTranslate.X = 0;
@@ -2294,19 +2274,12 @@ namespace Win8StartScreen
                 }
             };
 
-            if (_activeView == ActiveView.Apps)
+            WallpaperCanvas.BeginAnimation(OpacityProperty, bgFadeOut);
+            if (RibbonContainer != null && RibbonContainer.Visibility == Visibility.Visible)
             {
-                AppsScreenTranslate.BeginAnimation(TranslateTransform.XProperty, contentSlideOut);
-                AppsScreenContainer.BeginAnimation(OpacityProperty, contentFadeOut);
+                RibbonContainer.BeginAnimation(OpacityProperty, bgFadeOut);
             }
-            else
-            {
-                StartScreenTranslate.BeginAnimation(TranslateTransform.XProperty, contentSlideOut);
-                StartScreenContainer.BeginAnimation(OpacityProperty, contentFadeOut);
-            }
-
-            BackgroundLayer?.BeginAnimation(OpacityProperty, bgFadeOut);
-            this.BeginAnimation(OpacityProperty, windowFadeOut);
+            this.BeginAnimation(OpacityProperty, winFadeOut);
         }
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -5759,7 +5732,7 @@ namespace Win8StartScreen
             SaveLayoutConfig();
         }
 
-        public void AnimateTilesEntrance(int? targetFps = null)
+        public void AnimateTilesEntrance()
         {
             var tiles = StartTilesCanvas.Children.OfType<LiveTileControl>()
                 .OrderBy(t => Canvas.GetLeft(t))
@@ -5769,9 +5742,9 @@ namespace Win8StartScreen
             foreach (var tile in tiles)
             {
                 double x = Canvas.GetLeft(tile);
-                int colIndex = Math.Max(0, (int)Math.Floor(x / 160.0));
-                int delayMs = Math.Min(180, colIndex * 18);
-                tile.TriggerEntranceAnimation(delayMs, distance: 100.0, durationMs: 340, targetFps: targetFps);
+                int colIndex = Math.Max(0, (int)Math.Floor(x / 130.0));
+                int delayMs = Math.Min(320, colIndex * 35);
+                tile.TriggerEntranceAnimation(delayMs);
             }
         }
 

@@ -9,7 +9,7 @@
         WindowState="Normal"
         Topmost="True"
         ShowInTaskbar="False"
-        Background="#FF0A0A0D"
+        Background="{DynamicResource ThemeBackgroundPrimary}"
         Focusable="True"
         Visibility="Hidden"
         PreviewKeyDown="Window_PreviewKeyDown"
@@ -19,13 +19,8 @@
 
     <Grid x:Name="RootLayout" ClipToBounds="True" Background="Transparent" MouseRightButtonUp="RootLayout_MouseRightButtonUp" PreviewMouseDown="RootLayout_PreviewMouseDown">
         
-        <!-- ЕДИНЫЙ АППАРАТНЫЙ ФОНОВЫЙ СЛОЙ ЭКРАНА ПУСК -->
-        <Grid x:Name="BackgroundLayer" IsHitTestVisible="False">
-            <Grid.CacheMode>
-                <BitmapCache EnableClearType="False" RenderAtScale="1.0"/>
-            </Grid.CacheMode>
-            <!-- ДИНАМИЧЕСКИЙ ФОН WINDOWS 8.1 (ЧИСТЫЙ ГРАДИЕНТ ТЕМЫ ИЛИ СВОИ ОБОИ С ЗАТЕМНЕНИЕМ) -->
-            <Grid x:Name="WallpaperCanvas">
+        <!-- ДИНАМИЧЕСКИЙ ФОН WINDOWS 8.1 (ЧИСТЫЙ ГРАДИЕНТ ТЕМЫ ИЛИ СВОИ ОБОИ С ЗАТЕМНЕНИЕМ) -->
+        <Grid x:Name="WallpaperCanvas" IsHitTestVisible="False">
             <!-- Градиентная подложка по умолчанию -->
             <Grid.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -183,17 +178,16 @@
                     </Canvas>
                 </Canvas>
             </Viewbox>
-        </Grid>
 
         <!-- ============================================================== -->
         <!-- 1. ГЛАВНЫЙ ЭКРАН ПУСК (START SCREEN)                           -->
         <!-- ============================================================== -->
-        <Grid x:Name="StartScreenContainer" Margin="80,42,80,24">
-            <Grid.LayoutTransform>
-                <ScaleTransform x:Name="StartScreenScale" ScaleX="1.0" ScaleY="1.0"/>
-            </Grid.LayoutTransform>
+        <Grid x:Name="StartScreenContainer" Margin="80,42,80,24" RenderTransformOrigin="0,0">
             <Grid.RenderTransform>
-                <TranslateTransform x:Name="StartScreenTranslate" X="0" Y="0"/>
+                <TransformGroup>
+                    <ScaleTransform x:Name="StartScreenScale" ScaleX="1.0" ScaleY="1.0"/>
+                    <TranslateTransform x:Name="StartScreenTranslate" X="0" Y="0"/>
+                </TransformGroup>
             </Grid.RenderTransform>
 
             <Grid.RowDefinitions>
@@ -258,12 +252,12 @@
         <!-- ============================================================== -->
         <!-- 2. ЭКРАН «ПРИЛОЖЕНИЯ» С SEMANTIC ZOOM                         -->
         <!-- ============================================================== -->
-        <Grid x:Name="AppsScreenContainer" Margin="80,16,80,8" Visibility="Hidden" Opacity="1">
-            <Grid.LayoutTransform>
-                <ScaleTransform x:Name="AppsScreenScale" ScaleX="1.0" ScaleY="1.0"/>
-            </Grid.LayoutTransform>
+        <Grid x:Name="AppsScreenContainer" Margin="80,16,80,8" Visibility="Hidden" Opacity="1" RenderTransformOrigin="0,0">
             <Grid.RenderTransform>
-                <TranslateTransform x:Name="AppsScreenTranslate" X="0" Y="1080"/>
+                <TransformGroup>
+                    <ScaleTransform x:Name="AppsScreenScale" ScaleX="1.0" ScaleY="1.0"/>
+                    <TranslateTransform x:Name="AppsScreenTranslate" X="0" Y="1080"/>
+                </TransformGroup>
             </Grid.RenderTransform>
 
             <Grid.RowDefinitions>
