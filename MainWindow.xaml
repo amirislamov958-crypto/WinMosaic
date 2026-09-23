@@ -21,6 +21,9 @@
         
         <!-- ЕДИНЫЙ АППАРАТНЫЙ ФОНОВЫЙ СЛОЙ ЭКРАНА ПУСК -->
         <Grid x:Name="BackgroundLayer" IsHitTestVisible="False">
+            <Grid.CacheMode>
+                <BitmapCache EnableClearType="False" RenderAtScale="1.0"/>
+            </Grid.CacheMode>
             <!-- ДИНАМИЧЕСКИЙ ФОН WINDOWS 8.1 (ЧИСТЫЙ ГРАДИЕНТ ТЕМЫ ИЛИ СВОИ ОБОИ С ЗАТЕМНЕНИЕМ) -->
             <Grid x:Name="WallpaperCanvas">
             <!-- Градиентная подложка по умолчанию -->

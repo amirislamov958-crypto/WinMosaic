@@ -431,7 +431,7 @@ namespace Win8StartScreen
             TileSkew.AngleY = 0;
         }
 
-        public void TriggerEntranceAnimation(int delayMs = 0, double distance = 60.0, int durationMs = 280, int? targetFps = null)
+        public void TriggerEntranceAnimation(int delayMs = 0, double distance = 100.0, int durationMs = 340, int? targetFps = null)
         {
             EntranceTranslate.BeginAnimation(TranslateTransform.XProperty, null);
             BeginAnimation(OpacityProperty, null);

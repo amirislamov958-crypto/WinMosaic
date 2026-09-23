@@ -417,8 +417,11 @@ namespace Win8StartScreen
 
             Topmost = true;
             if (_hwnd != IntPtr.Zero) SetForegroundWindow(_hwnd);
-            try { Activate(); } catch { }
-            try { Focus(); } catch { }
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(() =>
+            {
+                try { Activate(); } catch { }
+                try { Focus(); } catch { }
+            }));
         }
 
         private void SetupConfigWatcher()
@@ -2116,7 +2119,7 @@ namespace Win8StartScreen
             {
                 From = 0.0,
                 To = 1.0,
-                Duration = TimeSpan.FromMilliseconds(220),
+                Duration = TimeSpan.FromMilliseconds(260),
                 EasingFunction = easeOut,
                 FillBehavior = FillBehavior.HoldEnd
             };
@@ -2132,17 +2135,12 @@ namespace Win8StartScreen
 
             UncloakWindow();
 
-            // 2. ПОСЛЕ ПЛИТОК - ФОН: мягко расцветает фон с узорами и градиентом (90мс -> 350мс)
-            if (BackgroundLayer != null)
-            {
-                BackgroundLayer.CacheMode = new BitmapCache { EnableClearType = false, RenderAtScale = 1.0 };
-            }
-
+            // 2. ПОСЛЕ ПЛИТОК - ФОН: мягко расцветает фон с узорами и градиентом (90мс -> 390мс)
             var bgFadeIn = new DoubleAnimation
             {
                 From = 0.0,
                 To = 1.0,
-                Duration = TimeSpan.FromMilliseconds(260),
+                Duration = TimeSpan.FromMilliseconds(300),
                 BeginTime = TimeSpan.FromMilliseconds(90), // Плитки уже скользят и видны, за ними плавно проявляется фон
                 EasingFunction = easeOut,
                 FillBehavior = FillBehavior.HoldEnd
@@ -2158,7 +2156,6 @@ namespace Win8StartScreen
                     {
                         BackgroundLayer.BeginAnimation(OpacityProperty, null);
                         BackgroundLayer.Opacity = 1.0;
-                        BackgroundLayer.CacheMode = null;
                     }
 
                     LiveTileCoordinator.Start();
@@ -2198,22 +2195,17 @@ namespace Win8StartScreen
 
             int targetFps = GetCurrentScreenRefreshRate();
             var easeIn = new CubicEase { EasingMode = EasingMode.EaseIn };
-            var duration = TimeSpan.FromMilliseconds(160);
+            var duration = TimeSpan.FromMilliseconds(260);
 
-            if (BackgroundLayer != null)
-            {
-                BackgroundLayer.CacheMode = new BitmapCache { EnableClearType = false, RenderAtScale = 1.0 };
-            }
-
-            // 1. Плавный аппаратный сдвиг содержимого влево (0px -> -50px)
-            var contentSlideOut = new DoubleAnimation(0.0, -50.0, duration)
+            // 1. Плавный аппаратный сдвиг содержимого влево (0px -> -80px) за 260мс
+            var contentSlideOut = new DoubleAnimation(0.0, -80.0, duration)
             {
                 EasingFunction = easeIn
             };
             Timeline.SetDesiredFrameRate(contentSlideOut, targetFps);
 
             // 2. Плавное затухание содержимого
-            var contentFadeOut = new DoubleAnimation(1.0, 0.0, TimeSpan.FromMilliseconds(140))
+            var contentFadeOut = new DoubleAnimation(1.0, 0.0, TimeSpan.FromMilliseconds(230))
             {
                 EasingFunction = easeIn
             };
@@ -2237,7 +2229,6 @@ namespace Win8StartScreen
                     {
                         BackgroundLayer.BeginAnimation(OpacityProperty, null);
                         BackgroundLayer.Opacity = 1.0;
-                        BackgroundLayer.CacheMode = null;
                     }
 
                     StartScreenTranslate.BeginAnimation(TranslateTransform.XProperty, null);
@@ -5756,8 +5747,8 @@ namespace Win8StartScreen
             {
                 double x = Canvas.GetLeft(tile);
                 int colIndex = Math.Max(0, (int)Math.Floor(x / 160.0));
-                int delayMs = Math.Min(90, colIndex * 22);
-                tile.TriggerEntranceAnimation(delayMs, distance: 60.0, durationMs: 280, targetFps: targetFps);
+                int delayMs = Math.Min(180, colIndex * 18);
+                tile.TriggerEntranceAnimation(delayMs, distance: 100.0, durationMs: 340, targetFps: targetFps);
             }
         }
 
