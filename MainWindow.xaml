@@ -182,12 +182,12 @@
         <!-- ============================================================== -->
         <!-- 1. ГЛАВНЫЙ ЭКРАН ПУСК (START SCREEN)                           -->
         <!-- ============================================================== -->
-        <Grid x:Name="StartScreenContainer" Margin="80,42,80,24" RenderTransformOrigin="0,0">
+        <Grid x:Name="StartScreenContainer" Margin="80,42,80,24">
+            <Grid.LayoutTransform>
+                <ScaleTransform x:Name="StartScreenScale" ScaleX="1.0" ScaleY="1.0"/>
+            </Grid.LayoutTransform>
             <Grid.RenderTransform>
-                <TransformGroup>
-                    <ScaleTransform x:Name="StartScreenScale" ScaleX="1.0" ScaleY="1.0"/>
-                    <TranslateTransform x:Name="StartScreenTranslate" X="0" Y="0"/>
-                </TransformGroup>
+                <TranslateTransform x:Name="StartScreenTranslate" X="0" Y="0"/>
             </Grid.RenderTransform>
 
             <Grid.RowDefinitions>
@@ -252,12 +252,12 @@
         <!-- ============================================================== -->
         <!-- 2. ЭКРАН «ПРИЛОЖЕНИЯ» С SEMANTIC ZOOM                         -->
         <!-- ============================================================== -->
-        <Grid x:Name="AppsScreenContainer" Margin="80,16,80,8" Visibility="Hidden" Opacity="1" RenderTransformOrigin="0,0">
+        <Grid x:Name="AppsScreenContainer" Margin="80,16,80,8" Visibility="Hidden" Opacity="1">
+            <Grid.LayoutTransform>
+                <ScaleTransform x:Name="AppsScreenScale" ScaleX="1.0" ScaleY="1.0"/>
+            </Grid.LayoutTransform>
             <Grid.RenderTransform>
-                <TransformGroup>
-                    <ScaleTransform x:Name="AppsScreenScale" ScaleX="1.0" ScaleY="1.0"/>
-                    <TranslateTransform x:Name="AppsScreenTranslate" X="0" Y="1080"/>
-                </TransformGroup>
+                <TranslateTransform x:Name="AppsScreenTranslate" X="0" Y="1080"/>
             </Grid.RenderTransform>
 
             <Grid.RowDefinitions>
